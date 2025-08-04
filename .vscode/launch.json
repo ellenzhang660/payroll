@@ -1,0 +1,130 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug app",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/finetuning/sandbox/app_backend.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "args": [
+        "${workspaceFolder}/finetune-app/backend/jobs/job-febb009f-12dd-4575-b432-0eeeb13b98ab.json"
+      ]
+    },
+    {
+      "name": "Debug payroll",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/time-series/payroll/data_visualization.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Debug zero shot",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/time-series/payroll/zero_shot.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Upload transformer",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/upload_transformers.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": true,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Debug local Docker",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/finetuning/test_local.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Testing models",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/finetuning/sandbox/tests.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Debug local HuggingFace",
+      "type": "python",
+      "request": "launch",
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "program": "${workspaceFolder}/transformers/examples/pytorch/language-modeling/run_clm.py", // to debug hugging face 
+      "args": [
+        // "--model_name_or_path", "AnkushRana01/Llama-3.2-1B-Instruct-Q8_0-GGUF",
+        "--model_name_or_path", "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+        // "--model_name_or_path", "jg940101/73e4cda5-f4cd-49cd-ae50-1f035d31670f",
+        "--output_dir", "${workspaceFolder}/debug-huggingface",
+        // "--dataset_name", "wikitext",
+        // "--dataset_config_name", "wikitext-2-raw-v1",
+        "--train_file", "${workspaceFolder}/finetuning/user_datasets/train_clm.json",
+        "--do_train", "True",
+        "--do_eval", "True",
+        "--num_train_epochs", "1",
+        "--learning_rate", "1e-4",
+        "--max_train_samples", "100",
+        "--fp16",
+        "--fsdp", "full_shard auto_wrap"
+      ],
+    },
+    {
+      "name": "Attach to Python backend via debugpy",
+      "type": "python",
+      "request": "attach",
+      "connect": {
+        "host": "localhost",
+        "port": 5681
+      },
+      "justMyCode": false
+    },
+    {
+      "name": "Debug inference endpoint",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/finetuning/sandbox/deploy_endpoint.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+  ]
+}
