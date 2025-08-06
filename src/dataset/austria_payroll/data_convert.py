@@ -1,11 +1,26 @@
+import json
+from pathlib import Path
+
 import pandas as pd
 
 
+current_dir = Path(__file__).parent
+
+"""
+Monthly payroll data in German 
+Ecach individual has multiple: income sources/variables
+across a whole time period 
+get rid of all the zero rows 
+columns are consistent across all users
+
+specific to this csv, 
+are the descriptions/payroll types consistent across all users? 
+"""
 # Load with proper encoding and delimiter
-df = pd.read_csv("time-series/payroll/Lohnkonto2022-2025.csv", encoding="ISO-8859-1", sep=";")
+df = pd.read_csv(f"{current_dir}/Lohnkonto2022-2025.csv", encoding="ISO-8859-1", sep=";")
 
 # Translate headers
-translation_dict = {
+column_translation_dict = {
     "Firma": "Company",
     "Persnr.": "Personnel No.",
     "ID": "ID",
@@ -58,151 +73,122 @@ translation_dict = {
     "Juni_2025": "June_2025",
     "Gesamtsumme": "Total Amount",
 }
-df.rename(columns=translation_dict, inplace=True)
+df.rename(columns=column_translation_dict, inplace=True)
 
-# Example: translate payroll item names (optional)
-# payroll_translation = {
-#     'Gehalt': 'Salary',
-#     'Bonus': 'Bonus',
-#     'Steuern': 'Taxes',
-# }
-# payroll_translation = {
-#     'BRUTTO': 'Gross Salary',
-#     'Gehalt': 'Salary',
-#     'Prämie (laufend)': 'Bonus (Ongoing)',
-#     'Urlaubszuschuss Aliqu. 688': 'Vacation Allowance Proportional (§688)',
-#     'Weihnachtsremuneration Al. 688': 'Christmas Bonus (§688)',
-#     'Prämie SZ': 'Special Bonus',
-#     '** BRUTTO **': 'Gross Salary (Emphasized)',
-#     'SV LFD.': 'Social Security (Ongoing)',
-#     '* BEM. SV LFD.': 'Assessment Basis for Social Security (Ongoing)',
-#     '*** ALV-% LFD RÜCKVERR.': 'Unemployment Insurance % Ongoing Retro Adjustment',
-#     'SV SZ': 'Social Security Special Payment',
-#     '* BEM. SV SZ': 'Assessment Basis for Social Security Special Payment',
-#     '*** ALV-% SZ RÜCKVERR.': 'Unemployment Insurance % Special Payment Retro Adjustment',
-#     'LST LFD': 'Wage Tax (Ongoing)',
-#     'LST §67/1-2': 'Wage Tax §67/1-2 (Special Tax Rule)',
-#     '* ABZÜGE': 'Deductions',
-#     'BRU': 'Gross (Abbreviation)',
-#     'E-CARD GEBÜHR': 'E-Card Fee (Health Insurance Card)',
-#     '* ABZÜGE DIV': 'Various Deductions',
-#     '** AUSZAHLUNG **': 'Net Payment',
-#     'BRUTTOSUMME': 'Total Gross Amount',
-#     'Sachbezug': 'Benefit in Kind',
-#     '* BRUTTO (210)': 'Gross Salary (Code 210)',
-#     'BASIS J/6': 'Base for J/6 Calculation (Vacation Pay Related)',
-#     'J/6 BER.': 'J/6 Calculated',
-#     'J/6 ÜBERHANG': 'J/6 Surplus',
-#     'SV J/6 ÜBERHANG': 'Social Security on J/6 Surplus',
-#     'SZ 67/1,2 IN J/6': 'Special Payment §67/1,2 Included in J/6',
-#     'FREIBETRAG': 'Tax Allowance',
-#     'SV.§67/1,2(225)': 'Social Security §67/1,2 (Code 225)',
-#     '* BEM §67/1,2': 'Assessment Basis §67/1,2',
-#     'LST §67/1,2': 'Wage Tax §67/1,2',
-#     'BEM. LST TAB.': 'Assessment Basis for Wage Tax Table',
-#     '* LST PFL. (245)': 'Taxable Wage Tax (Code 245)',
-#     'LST 67/1,2': 'Wage Tax §67/1,2',
-#     '* ANR. LST (260)': 'Additional Wage Tax (Code 260)',
-#     'SV-DG ANTEIL': 'Employer Social Security Share',
-#     'BEM.MV-KASSE GESAMT': 'Assessment Basis for Pension Fund Total',
-#     'MV-KASSE GESAMT': 'Pension Fund Total Amount',
-#     'DB BEMESSUNG': 'Assessment Base for Severance Pay',
-#     'DB BERECHNET (FB BERÜCK)': 'Severance Pay Calculated (Considering Deductions)',
-#     'DZ BERECHNET (FB BERÜCK)': 'Supplementary Severance Pay Calculated',
-#     'KOMM.ST.BEM.': 'Assessment Basis for Municipal Tax',
-#     'KOMM.ST.BERECHNET (FB ERÜCK)': 'Municipal Tax Calculated (Considering Deductions)',
-#     'U-BAHNSTEUER': 'Subway Tax (Local Tax in Vienna)',
-#     'Homeoffice': 'Home Office',
-#     'Tage Homeoffice': 'Home Office Days',
-#     'Kostenübern. Par. 26 Z 5 lit b': 'Cost Coverage (Legal Paragraph 26 Z 5 lit b)',
-#     'Kontroll6tel': 'Control Sixth (Specific Calculation Term)',
-#     '§ 68/1 FREI': '§68/1 Exempt',
-#     '§ 68/2 FREI': '§68/2 Exempt',
-#     'SV-EINBEH. UE/KE': 'Social Security Deduction for UE/KE',
-#     'SV-LFD. UE/KE': 'Social Security Ongoing for UE/KE',
-#     'SV-SZ UE/KE': 'Social Security Special Payment for UE/KE',
-#     'SV-Tage für UE/UA/EL f. Url.': 'Social Security Days for UE/UA/EL for Vacation',
-#     'Abfertigung ges. (Auszahlung)': 'Severance Pay Total (Payout)',
-#     'Steuerfr. § 26': 'Tax Exempt §26',
-#     'Ersatzl. Urlaub 67/8d lfd.': 'Replacement Vacation §67/8d Ongoing',
-#     'Ersatzl. Urlaub 67/8d SZ': 'Replacement Vacation §67/8d Special Payment',
-#     'Üstd. 50 %  § (68/2)': 'Overtime 50% §68/2',
-#     'Üstd. Zuschl. 100 % (§ 68/1)': 'Overtime Premium 100% (§68/1)',
-#     'Üstd. Grundvergütung': 'Overtime Base Pay',
-# }
-payroll_translation = {
-    "BRUTTO": "Gross Salary",
+unique_names = df["Name"].unique().tolist()
+keys = {}
+all_descriptions = set()
+
+for person in unique_names:
+    df_person = df[df["Name"] == person].copy()
+    keys[person] = {}
+
+    for _, row in df_person.iterrows():
+        payroll_type = row["Payroll Type"]
+        description = row["Description"].strip()
+        # Initialize an empty list if not already there
+        if payroll_type not in keys[person]:
+            keys[person][payroll_type] = []
+
+        # Append the new description
+        keys[person][payroll_type].append(description)
+        all_descriptions.add(description)
+
+    keys[person][payroll_type] = sorted(keys[person][payroll_type])
+
+count_descriptions = {description: [] for description in all_descriptions}
+for person in unique_names:
+    df_person = df[df["Name"] == person].copy()
+
+    for _, row in df_person.iterrows():
+        description = row["Description"].strip()
+        count_descriptions[description].append(person)
+for key, list_people in count_descriptions.items():
+    count_descriptions[key] = (len(list_people) / len(unique_names), list_people)
+sorted_dict = dict(sorted(count_descriptions.items(), key=lambda item: (item[0], item[1][0] if item[1] else "")))
+print(all_descriptions)
+
+# Save to a readable JSON file
+with open(f"{current_dir}/payroll_keys.json", "w", encoding="utf-8") as f:
+    json.dump(keys, f, indent=2, ensure_ascii=False)
+with open(f"{current_dir}/descriptions_count.json", "w", encoding="utf-8") as f:
+    json.dump(sorted_dict, f, indent=2, ensure_ascii=False)
+
+german_to_english = {
+    "** AUSZAHLUNG **": "** Payout **",
+    "** BRUTTO **": "** Gross **",
+    "* § 68 (215)": "§68 (215) exemption",
+    "* §67/3-7": "Tax under §67/3–7 (bonus/exempt allowances)",
+    "* ABZ. SV WEITERV.": "Social insurance deduction continuation",
+    "* ABZÜGE": "* Deductions",
+    "* ABZÜGE DIV": "Various deductions",
+    "* ANR. LST (260)": "Deducted income tax (260)",
+    "* BEM §67/1,2": "Assessment base §67/1,2",
+    "* BEM. SV LFD.": "Assessment base social insurance ongoing",
+    "* BEM. SV SZ": "Assessment base social insurance special payment",
+    "* BRUTTO (210)": "Gross (210)",
+    "* LST PFL. (245)": "Income tax liability (245)",
+    "§ 68/1 FREI": "Exempt under §68/1",
+    "§ 68/2 FREI": "Exempt under §68/2",
+    "Abfertigung ges. (Auszahlung)": "Severance payment (payout)",
+    "BASIS J/6": "Base for J/6 calculation",
+    "BEM §67/3,4": "Tax base §67/3,4",
+    "BEM.MV-KASSE GESAMT": "Assessment base company pension fund",
+    "BEM. LST TAB.": "Income tax assessment base",
+    "BRU": "Gross pay",
+    "BRUTTO": "Gross",
+    "BRUTTOSUMME": "Gross total",
+    "DB BEMESSUNG": "Employer contribution assessment base",
+    "DB BERECHNET (FB BERÜCK)": "Employer contribution calculated (tax-free amount considered)",
+    "DZ BERECHNET (FB BERÜCK)": "Supplementary contribution calculated (tax-free considered)",
+    "E-CARD GEBÜHR": "e-Card fee (Austrian health insurance)",
+    "Ersatzl. Urlaub 67/8d SZ": "Compensated vacation §67/8d (special payment)",
+    "Ersatzl. Urlaub 67/8d lfd.": "Compensated vacation §67/8d ongoing",
+    "FREIBETRAG": "Tax-free allowance",
     "Gehalt": "Salary",
-    "Prämie (laufend)": "Bonus (Ongoing)",
-    "Urlaubszuschuss Aliqu. 688": "Vacation Allowance Proportional (§688)",
-    "Weihnachtsremuneration Al. 688": "Christmas Bonus (§688)",
-    "Prämie SZ": "Special Bonus",
-    "** BRUTTO **": "Gross Salary (Emphasized)",
-    "SV LFD.": "Social Security (Ongoing)",
-    "* BEM. SV LFD.": "Assessment Basis for Social Security (Ongoing)",
-    "*** ALV-% LFD RÜCKVERR.": "Unemployment Insurance % Ongoing Retro Adjustment",
-    "*** ALV-% SZ RÜCKVERR.": "Unemployment Insurance % Special Payment Retro Adjustment",
-    "SV SZ": "Social Security Special Payment",
-    "* BEM. SV SZ": "Assessment Basis for Social Security Special Payment",
-    "*** ALV-% SZ RÜCKVERR.": "Unemployment Insurance % Special Payment Retro Adjustment",
-    "LST LFD": "Wage Tax (Ongoing)",
-    "LST §67/1-2": "Wage Tax §67/1-2 (Special Tax Rule)",
-    "* ABZÜGE": "Deductions",
-    "BRU": "Gross (Abbreviation)",
-    "E-CARD GEBÜHR": "E-Card Fee (Health Insurance Card)",
-    "* ABZÜGE DIV": "Various Deductions",
-    "** AUSZAHLUNG **": "Net Payment",
-    "BRUTTOSUMME": "Total Gross Amount",
-    "Sachbezug": "Benefit in Kind",
-    "* BRUTTO (210)": "Gross Salary (Code 210)",
-    "BASIS J/6": "Base for J/6 Calculation (Vacation Pay Related)",
-    "J/6 BER.": "J/6 Calculated",
-    "J/6 ÜBERHANG": "J/6 Surplus",
-    "SV J/6 ÜBERHANG": "Social Security on J/6 Surplus",
-    "SZ 67/1,2 IN J/6": "Special Payment §67/1,2 Included in J/6",
-    "FREIBETRAG": "Tax Allowance",
-    "SV.§67/1,2(225)": "Social Security §67/1,2 (Code 225)",
-    "* BEM §67/1,2": "Assessment Basis §67/1,2",
-    "LST §67/1,2": "Wage Tax §67/1,2",
-    "BEM. LST TAB.": "Assessment Basis for Wage Tax Table",
-    "* LST PFL. (245)": "Taxable Wage Tax (Code 245)",
-    "LST 67/1,2": "Wage Tax §67/1,2",
-    "* ANR. LST (260)": "Additional Wage Tax (Code 260)",
-    "SV-DG ANTEIL": "Employer Social Security Share",
-    "BEM.MV-KASSE GESAMT": "Assessment Basis for Pension Fund Total",
-    "MV-KASSE GESAMT": "Pension Fund Total Amount",
-    "DB BEMESSUNG": "Assessment Base for Severance Pay",
-    "DB BERECHNET (FB BERÜCK)": "Severance Pay Calculated (Considering Deductions)",
-    "DZ BERECHNET (FB BERÜCK)": "Supplementary Severance Pay Calculated",
-    "KOMM.ST.BEM.": "Assessment Basis for Municipal Tax",
-    "KOMM.ST.BERECHNET (FB ERÜCK)": "Municipal Tax Calculated (Considering Deductions)",
-    "U-BAHNSTEUER": "Subway Tax (Local Tax in Vienna)",
-    "Homeoffice": "Home Office",
-    "Tage Homeoffice": "Home Office Days",
-    "Kostenübern. Par. 26 Z 5 lit b": "Cost Coverage (Legal Paragraph 26 Z 5 lit b)",
-    "Kontroll6tel": "Control Sixth (Specific Calculation Term)",
-    "§ 68/1 FREI": "§68/1 Exempt",
-    "§ 68/2 FREI": "§68/2 Exempt",
-    "SV-EINBEH. UE/KE": "Social Security Deduction for UE/KE",
-    "SV-LFD. UE/KE": "Social Security Ongoing for UE/KE",
-    "SV-SZ UE/KE": "Social Security Special Payment for UE/KE",
-    "SV-Tage für UE/UA/EL f. Url.": "Social Security Days for UE/UA/EL for Vacation",
-    "Abfertigung ges. (Auszahlung)": "Severance Pay Total (Payout)",
-    "Steuerfr. § 26": "Tax Exempt §26",
-    "Ersatzl. Urlaub 67/8d lfd.": "Replacement Vacation §67/8d Ongoing",
-    "Ersatzl. Urlaub 67/8d SZ": "Replacement Vacation §67/8d Special Payment",
-    "Üstd. 50 %  § (68/2)": "Overtime 50% §68/2",
-    "Üstd. Zuschl. 100 % (§ 68/1)": "Overtime Premium 100% (§68/1)",
-    "Üstd. Grundvergütung": "Overtime Base Pay",
+    "Homeoffice": "Home office",
+    "J/6 BER.": "One-sixth calculation (bonus proportion)",
+    "J/6 ÜBERHANG": "One-sixth overhang",
+    "KOMM.ST.BEM.": "Municipal tax assessment base",
+    "KOMM.ST.BERECHNET (FB ERÜCK)": "Municipal tax calculated (exemptions applied)",
+    "Kontroll6tel": "Control sixth (bonus eligibility check)",
+    "Kostenübern. Par. 26 Z 5 lit b": "Cost coverage §26 section 5 lit b",
+    "LST 67/1,2": "Income tax §67/1,2",
+    "LST LFD": "Income tax ongoing",
+    "LST LFD.": "Income tax (ongoing)",
+    "LST §67/1-2": "Income tax §67/1–2",
+    "LST §67/1,2": "Income tax §67/1,2",
+    "LST §67/3-7": "Income tax §67/3–7",
+    "MV-KASSE GESAMT": "Company pension fund total",
+    "Prämie (laufend)": "Bonus (ongoing)",
+    "Prämie SZ": "Bonus (special payment)",
+    "Sachbezug": "Non-cash benefit",
+    "STEUERFR. § 26": "Tax-free under §26",
+    "SV J/6 ÜBERHANG": "Social insurance overhang (J/6)",
+    "SV LFD.": "Ongoing social insurance",
+    "SV SZ": "Social insurance special payment",
+    "SV-DG ANTEIL": "Employer's social insurance contribution",
+    "SV-EINBEH. UE/KE": "Social insurance deduction UE/KE",
+    "SV-LFD. UE/KE": "Social insurance ongoing UE/KE",
+    "SV-SZ UE/KE": "Social insurance special payment UE/KE",
+    "SV-Tage für UE/UA/EL f. Url.": "Insurance days for leave/parental/comp. for vacation",
+    "SV.§67/1,2(225)": "Social insurance §67/1,2 (225)",
+    "SZ 67/1,2 IN J/6": "Special payment §67/1,2 in annual sixth",
+    "Tage Homeoffice": "Days working from home",
+    "ÜStd. 50 %  § (68/2)": "Overtime 50% §68/2",
+    "ÜStd. Grundvergütung": "Overtime base pay",
+    "ÜStd. Zuschl. 100 % (§ 68/1)": "Overtime bonus 100% (§68/1)",
+    "U-BAHNSTEUER": "Subway tax (Vienna only)",
+    "Urlaubszuschuss Aliqu. 688": "Pro-rated vacation bonus 688",
+    "Weihnachtsremuneration Al. 688": "Christmas bonus per agreement 688",
+    "*** ALV-% LFD RÜCKVERR.": "Unemployment contribution % ongoing (retro adjustment)",
+    "*** ALV-% SZ RÜCKKVERR.": "Unemployment contribution % special payment (retro adjustment)",
 }
 
-for val in df["Description"].unique():
-    if "ALV" in val:
-        print(repr(val))
 
 if "Description" in df.columns:
     df["Description"] = df["Description"].str.strip()
-    df["Description"] = df["Description"].map(payroll_translation).fillna(df["Description"])
+    df["Description"] = df["Description"].map(german_to_english).fillna(df["Description"])
 
 # Save translated CSV
-df.to_csv("time-series/payroll/Lohnkonto2022-2025_english.csv", index=False, encoding="utf-8")
+df.to_csv(f"{current_dir}/Lohnkonto2022-2025_english.csv", index=False, encoding="utf-8")

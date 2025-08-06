@@ -16,7 +16,6 @@ import torch
 from gluonts.evaluation import make_evaluation_predictions
 from lag_llama.gluon.estimator import LagLlamaEstimator
 
-
 # from gluonts.dataset.repository.datasets import get_dataset
 
 # from gluonts.dataset.pandas import PandasDataset
@@ -78,44 +77,43 @@ gluonts_module.DistributionLoss = DistributionLoss
 gluonts_module.NegativeLogLikelihood = NegativeLogLikelihood
 
 
-def get_lag_llama_predictions(
-    dataset, prediction_length, device, context_length=32, use_rope_scaling=False, num_samples=100
-):
-    print(prediction_length, context_length, num_samples)
-    ckpt = torch.load(
-        "lag-llama/lag-llama.ckpt", map_location=device, weights_only=False
-    )  # Uses GPU since in this Colab we use a GPU.
-    estimator_args = ckpt["hyper_parameters"]["model_kwargs"]
-    print(estimator_args)
+class LlamaPredictions:
+    def __init__(self, prediction_length: int, context_length: int, device: torch.device, use_rope_scaling: bool, num_samples: int):
+        ckpt = torch.load(
+            "lag-llama/lag-llama.ckpt", map_location=device, weights_only=False
+        )  # Uses GPU since in this Colab we use a GPU.
+        estimator_args = ckpt["hyper_parameters"]["model_kwargs"]
+        print(estimator_args)
 
-    rope_scaling_arguments = {
-        "type": "linear",
-        "factor": max(1.0, (context_length + prediction_length) / estimator_args["context_length"]),
-    }
+        rope_scaling_arguments = {
+            "type": "linear",
+            "factor": max(1.0, (context_length + prediction_length) / estimator_args["context_length"]),
+        }
+        estimator = LagLlamaEstimator(
+            ckpt_path="lag-llama/lag-llama.ckpt",
+            prediction_length=prediction_length,
+            context_length=context_length,  # Lag-Llama was trained with a context length of 32, but can work with any context length
+            # estimator args
+            input_size=estimator_args["input_size"],
+            n_layer=estimator_args["n_layer"],
+            n_embd_per_head=estimator_args["n_embd_per_head"],
+            n_head=estimator_args["n_head"],
+            scaling=estimator_args["scaling"],
+            time_feat=estimator_args["time_feat"],
+            rope_scaling=rope_scaling_arguments if use_rope_scaling else None,
+            batch_size=1,
+            num_parallel_samples=100,
+            device=device,
+        )
 
-    estimator = LagLlamaEstimator(
-        ckpt_path="lag-llama/lag-llama.ckpt",
-        prediction_length=prediction_length,
-        context_length=context_length,  # Lag-Llama was trained with a context length of 32, but can work with any context length
-        # estimator args
-        input_size=estimator_args["input_size"],
-        n_layer=estimator_args["n_layer"],
-        n_embd_per_head=estimator_args["n_embd_per_head"],
-        n_head=estimator_args["n_head"],
-        scaling=estimator_args["scaling"],
-        time_feat=estimator_args["time_feat"],
-        rope_scaling=rope_scaling_arguments if use_rope_scaling else None,
-        batch_size=1,
-        num_parallel_samples=100,
-        device=device,
-    )
+        lightning_module = estimator.create_lightning_module()
+        transformation = estimator.create_transformation()
+        self.predictor = estimator.create_predictor(transformation, lightning_module)
+        self.num_samples = num_samples
 
-    lightning_module = estimator.create_lightning_module()
-    transformation = estimator.create_transformation()
-    predictor = estimator.create_predictor(transformation, lightning_module)
+    def zero_shot(self, dataset):
+        forecast_it, ts_it = make_evaluation_predictions(dataset=dataset, predictor=self.predictor, num_samples=self.num_samples)
+        forecasts = list(forecast_it)
+        tss = list(ts_it)
+        return forecasts, tss
 
-    forecast_it, ts_it = make_evaluation_predictions(dataset=dataset, predictor=predictor, num_samples=num_samples)
-    forecasts = list(forecast_it)
-    tss = list(ts_it)
-    print("here", estimator_args["input_size"])
-    return forecasts, tss
