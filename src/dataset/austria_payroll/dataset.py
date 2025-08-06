@@ -6,6 +6,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.io as pio
 from torch.utils.data import Dataset
+
 from src.utils import logger
 
 
@@ -40,7 +41,7 @@ class PayrollDataset(Dataset):
             .astype("float32")
         )
         self.id_var = "ID"
-        self.freq = "M" #monthly
+        self.freq = "M"  # monthly
         self._log_preprocess()
 
     @abstractmethod
@@ -52,7 +53,9 @@ class PayrollDataset(Dataset):
         return len(self.unique_ids)
 
     def _log_preprocess(self):
-        logger.info("For each unique ID, we filter out the series with all zero values, and also find the duplicate descriptions (although we don't remove them)")
+        logger.info(
+            "For each unique ID, we filter out the series with all zero values, and also find the duplicate descriptions (although we don't remove them)"
+        )
 
     def preprocess(self, df_person: pd.DataFrame) -> pd.DataFrame:
         df_person = df_person[df_person[self.time_cols].any(axis=1)].copy()  # filter out zero rows

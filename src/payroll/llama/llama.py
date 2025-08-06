@@ -16,6 +16,7 @@ import torch
 from gluonts.evaluation import make_evaluation_predictions
 from lag_llama.gluon.estimator import LagLlamaEstimator
 
+
 # from gluonts.dataset.repository.datasets import get_dataset
 
 # from gluonts.dataset.pandas import PandasDataset
@@ -78,7 +79,14 @@ gluonts_module.NegativeLogLikelihood = NegativeLogLikelihood
 
 
 class LlamaPredictions:
-    def __init__(self, prediction_length: int, context_length: int, device: torch.device, use_rope_scaling: bool, num_samples: int):
+    def __init__(
+        self,
+        prediction_length: int,
+        context_length: int,
+        device: torch.device,
+        use_rope_scaling: bool,
+        num_samples: int,
+    ):
         ckpt = torch.load(
             "lag-llama/lag-llama.ckpt", map_location=device, weights_only=False
         )  # Uses GPU since in this Colab we use a GPU.
@@ -112,8 +120,9 @@ class LlamaPredictions:
         self.num_samples = num_samples
 
     def zero_shot(self, dataset):
-        forecast_it, ts_it = make_evaluation_predictions(dataset=dataset, predictor=self.predictor, num_samples=self.num_samples)
+        forecast_it, ts_it = make_evaluation_predictions(
+            dataset=dataset, predictor=self.predictor, num_samples=self.num_samples
+        )
         forecasts = list(forecast_it)
         tss = list(ts_it)
         return forecasts, tss
-

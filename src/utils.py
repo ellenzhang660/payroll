@@ -1,5 +1,6 @@
 import logging
 
+
 # Create a logger
 logger = logging.getLogger(__name__)  # __name__ is the module name
 
@@ -11,9 +12,8 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)  # Set level for this handler
 
 # Create a formatter and set it for the handler
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 ch.setFormatter(formatter)
 
 # Add the handler to the logger
 logger.addHandler(ch)
-

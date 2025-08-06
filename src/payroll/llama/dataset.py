@@ -1,10 +1,12 @@
+from typing import Literal
+
 import pandas as pd
+from gluonts.dataset.common import ListDataset
 from gluonts.dataset.pandas import PandasDataset
 from torch.utils.data import Dataset
-from typing import Literal
-from gluonts.dataset.common import ListDataset
 
 from src.dataset.austria_payroll.dataset import PayrollDataset
+
 
 def init_dataset(dataset: Literal["payroll", "generic", "retail"]) -> Dataset:
     if dataset == "payroll":
@@ -17,6 +19,7 @@ def init_dataset(dataset: Literal["payroll", "generic", "retail"]) -> Dataset:
         return RetailDataset()
     else:
         raise ValueError
+
 
 class LlamaDataset(PayrollDataset):
     def __init__(self, target_column: str):
@@ -34,9 +37,9 @@ class LlamaDataset(PayrollDataset):
         """
         Input: multivariate dataframe
         rows = Different time series
-        time cols are the relevant ones we want to extract 
+        time cols are the relevant ones we want to extract
 
-        Returns a PandasDataset compatible with llama 
+        Returns a PandasDataset compatible with llama
         """
         # Melt the time columns to long format
         df_long = df.melt(
@@ -45,10 +48,10 @@ class LlamaDataset(PayrollDataset):
 
         # Pivot to desired format: months as index, descriptions as columns
         df_pivoted = df_long.pivot_table(
-            index=["ID", "Month"],      # include ID in the index too
+            index=["ID", "Month"],  # include ID in the index too
             columns="Description",
             values="Amount",
-            aggfunc="first"
+            aggfunc="first",
         ).fillna(0.0)
 
         # Reset 'ID' from index to a column but keep 'Month' as the index
@@ -66,17 +69,16 @@ class LlamaDataset(PayrollDataset):
         # Now, df should haev month as the index, and columns for each of the 42? payroll descriptions, and an ID column
 
         dataset = PandasDataset.from_long_dataframe(
-            df_pivoted, target=self.target_colum, timestamp="Month", item_id="ID", freq=self.freq  
+            df_pivoted, target=self.target_colum, timestamp="Month", item_id="ID", freq=self.freq
         )
 
         return dataset
 
     def __getitem__(self, idx: int):
         results = super().__getitem__(idx)
-        dataset = self.reformat(df = results["df"])
+        dataset = self.reformat(df=results["df"])
 
         return dataset
-
 
 
 class GenericDataset(Dataset):
@@ -105,7 +107,7 @@ class GenericDataset(Dataset):
 
     def __len__(self):
         return len(self.unique_ids)
-    
+
     def reformat(self, df: pd.DataFrame) -> PandasDataset:
         # Create the Pandas
         dataset = PandasDataset.from_long_dataframe(df, target="target", item_id="item_id")
@@ -114,7 +116,7 @@ class GenericDataset(Dataset):
     def __getitem__(self, idx: int):
         id = self.unique_ids[idx]
         df_person = self.df[self.df[self.id_var] == id].copy()
-        dataset = self.reformat(df = df_person)
+        dataset = self.reformat(df=df_person)
         return dataset
 
 
@@ -138,7 +140,7 @@ class RetailDataset(Dataset):
 
     def __len__(self):
         return len(self.unique_ids)
-    
+
     def reformat(self, df: pd.DataFrame) -> ListDataset:
         # Create the Pandas
         test_data = [{"start": df.index[0], "target": df[i].values} for i in df.columns]
@@ -148,8 +150,5 @@ class RetailDataset(Dataset):
     def __getitem__(self, idx: int):
         id = self.unique_ids[idx]
         df_person = self.df[self.df[self.id_var] == id].copy()
-        dataset = self.reformat(df = df_person)
+        dataset = self.reformat(df=df_person)
         return dataset
-
-
-   
