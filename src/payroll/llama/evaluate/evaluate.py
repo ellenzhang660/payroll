@@ -14,8 +14,9 @@ Evaluator for test set, runs LagLlama forecasting from a checkpoint and visualiz
 
 To run, cd into root repo and run
 export PYTHONPATH=$(pwd)
-poetry run python src/payroll/llama/finetune/finetune.py --dataset payroll
+poetry run python src/payroll/llama/evaluate/evaluate.py --dataset payroll
 """
+
 
 def set_args():
     parser = argparse.ArgumentParser()

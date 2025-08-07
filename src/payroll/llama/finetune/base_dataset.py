@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Literal
 
 import pandas as pd
 from gluonts.dataset.pandas import PandasDataset
@@ -10,16 +9,17 @@ from gluonts.dataset.pandas import PandasDataset
 class ClassAttributes:
     prediction_length: int
     context_length: int
-    target_column: str
+    available_target_columns: list[str]  # as LagLlama is univariate, can only finetune on one column at a time
     freq: str
 
 
 @dataclass
 class FinetuneDataset(ClassAttributes):
-    dataset: PandasDataset
+    train_dataset: PandasDataset
+    val_dataset: PandasDataset
 
 
-class BasePreprocessingInterface(ABC):
+class BaseFinetuningDataset(ABC):
     def __init__(self):
         self.attributes = self._init_attributes()
         self._log_preprocess()
@@ -29,6 +29,10 @@ class BasePreprocessingInterface(ABC):
     def _init_attributes(self) -> ClassAttributes:
         """Initializes class attributes"""
         pass
+
+    @property
+    def available_target_columns(self) -> list[str]:
+        return self.attributes.available_target_columns
 
     @abstractmethod
     def preprocess(self) -> pd.DataFrame:
@@ -41,6 +45,6 @@ class BasePreprocessingInterface(ABC):
         pass
 
     @abstractmethod
-    def __getitem__(self, key: Literal["train", "val", "test"]) -> FinetuneDataset:
-        """Access specific split of the dataset"""
+    def __getitem__(self, target_column: str) -> FinetuneDataset:
+        """Dataset for a specific target_column of the dataset"""
         pass

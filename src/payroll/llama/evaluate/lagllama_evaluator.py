@@ -1,7 +1,7 @@
 import os
 import sys
 from types import ModuleType
-from typing import Optional, Tuple, Any
+from typing import Optional, Tuple
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -12,9 +12,9 @@ from gluonts.dataset.pandas import PandasDataset
 from gluonts.evaluation import Evaluator, make_evaluation_predictions
 from gluonts.model.forecast import Forecast
 from lag_llama.gluon.estimator import LagLlamaEstimator
+from pandas import Series
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from pandas import Series
 
 
 class LagLlamaEvaluator:
@@ -104,7 +104,9 @@ class LagLlamaEvaluator:
         tss = list(ts_it)
         return forecasts, tss
 
-    def _visualize_forecast(self, forecast: Forecast, ts: Series, metrics: Series, prediction_interval: Tuple[int, int]=(10, 90)):
+    def _visualize_forecast(
+        self, forecast: Forecast, ts: Series, metrics: Series, prediction_interval: Tuple[int, int] = (10, 90)
+    ):
         """
         Visualizes a single forecast and its corresponding time series.
 
@@ -113,12 +115,13 @@ class LagLlamaEvaluator:
         - ts: pandas Series with a PeriodIndex or DateTimeIndex
         - prediction_interval: tuple of percentiles to show uncertainty (e.g., (10, 90))
         """
+
         def format_metric(key: str) -> str:
             """
             Returns metrics as a percentage
             """
-            metric = float(f'{metrics[key]:.4f}') * 100.0
-            metric = float(f'{metric:.2f}')
+            metric = float(f"{metrics[key]:.4f}") * 100.0
+            metric = float(f"{metric:.2f}")
             return str(metric)
 
         # Convert ts to timestamp if it's a PeriodIndex
@@ -147,7 +150,9 @@ class LagLlamaEvaluator:
             label=f"{prediction_interval[1] - prediction_interval[0]}% Prediction Interval",
         )
 
-        plt.title(f"Start : {str(metrics["forecast_start"])} for item: {forecast.item_id} with MAPE: {format_metric("MAPE")}%")
+        plt.title(
+            f"Start : {str(metrics["forecast_start"])} for item: {forecast.item_id} with MAPE: {format_metric("MAPE")}%"
+        )
         plt.xlabel("Time")
         plt.ylabel("Value")
         plt.xticks(rotation=45)
@@ -175,12 +180,11 @@ class LagLlamaEvaluator:
         agg_metrics: aggregated forecast metrics, we'll use the MAPE metric to evaluate
             dictionary mapping metrics to its value
         ts_metrics: information about each time series, we'll use this to graph
-            converts to a dataframe 
+            converts to a dataframe
         """
-        agg_metrics, ts_metrics = self.evaluator(ts_iterator=ts, fcst_iterator=forecast)  
+        agg_metrics, ts_metrics = self.evaluator(ts_iterator=ts, fcst_iterator=forecast)
 
         return agg_metrics, ts_metrics
-
 
     def evaluate_test_dataset(self, dataset: Dataset):
         if self.save_dir:
