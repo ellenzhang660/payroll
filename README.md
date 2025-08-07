@@ -7,9 +7,9 @@ accounting terminology and practices across multiple languages and international
 Available Models
     LagLlama finetuning + evaluation
 
-TODO
+# TODO
 
-# syntehtic data generation
-# generate hundreds and thousands of data sample
-# but only evaluate on the actual people
-# forecast, fraud detection, anamoly etc.
+synthetic data generation
+generate hundreds and thousands of data sample
+but only evaluate on the actual people
+forecast, fraud detection, anamoly etc.
