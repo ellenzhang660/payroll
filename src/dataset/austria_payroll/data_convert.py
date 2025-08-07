@@ -16,8 +16,6 @@ columns are consistent across all users
 specific to this csv, 
 are the descriptions/payroll types consistent across all users? 
 """
-# Load with proper encoding and delimiter
-df = pd.read_csv(f"{current_dir}/Lohnkonto2022-2025.csv", encoding="ISO-8859-1", sep=";")
 
 # Translate headers
 column_translation_dict = {
@@ -73,46 +71,7 @@ column_translation_dict = {
     "Juni_2025": "June_2025",
     "Gesamtsumme": "Total Amount",
 }
-df.rename(columns=column_translation_dict, inplace=True)
 
-unique_names = df["Name"].unique().tolist()
-keys = {}
-all_descriptions = set()
-
-for person in unique_names:
-    df_person = df[df["Name"] == person].copy()
-    keys[person] = {}
-
-    for _, row in df_person.iterrows():
-        payroll_type = row["Payroll Type"]
-        description = row["Description"].strip()
-        # Initialize an empty list if not already there
-        if payroll_type not in keys[person]:
-            keys[person][payroll_type] = []
-
-        # Append the new description
-        keys[person][payroll_type].append(description)
-        all_descriptions.add(description)
-
-    keys[person][payroll_type] = sorted(keys[person][payroll_type])
-
-count_descriptions = {description: [] for description in all_descriptions}
-for person in unique_names:
-    df_person = df[df["Name"] == person].copy()
-
-    for _, row in df_person.iterrows():
-        description = row["Description"].strip()
-        count_descriptions[description].append(person)
-for key, list_people in count_descriptions.items():
-    count_descriptions[key] = (len(list_people) / len(unique_names), list_people)
-sorted_dict = dict(sorted(count_descriptions.items(), key=lambda item: (item[0], item[1][0] if item[1] else "")))
-print(all_descriptions)
-
-# Save to a readable JSON file
-with open(f"{current_dir}/payroll_keys.json", "w", encoding="utf-8") as f:
-    json.dump(keys, f, indent=2, ensure_ascii=False)
-with open(f"{current_dir}/descriptions_count.json", "w", encoding="utf-8") as f:
-    json.dump(sorted_dict, f, indent=2, ensure_ascii=False)
 
 german_to_english = {
     "** AUSZAHLUNG **": "** Payout **",
@@ -186,9 +145,54 @@ german_to_english = {
 }
 
 
-if "Description" in df.columns:
-    df["Description"] = df["Description"].str.strip()
-    df["Description"] = df["Description"].map(german_to_english).fillna(df["Description"])
+if __name__ == "__main__":
 
-# Save translated CSV
-df.to_csv(f"{current_dir}/Lohnkonto2022-2025_english.csv", index=False, encoding="utf-8")
+    # Load with proper encoding and delimiter
+    df = pd.read_csv(f"{current_dir}/Lohnkonto2022-2025.csv", encoding="ISO-8859-1", sep=";")
+    df.rename(columns=column_translation_dict, inplace=True)
+
+    unique_names = df["Name"].unique().tolist()
+    keys = {}
+    all_descriptions = set()
+
+    for person in unique_names:
+        df_person = df[df["Name"] == person].copy()
+        keys[person] = {}
+
+        for _, row in df_person.iterrows():
+            payroll_type = row["Payroll Type"]
+            description = row["Description"].strip()
+            # Initialize an empty list if not already there
+            if payroll_type not in keys[person]:
+                keys[person][payroll_type] = []
+
+            # Append the new description
+            keys[person][payroll_type].append(description)
+            all_descriptions.add(description)
+
+        keys[person][payroll_type] = sorted(keys[person][payroll_type])
+
+    count_descriptions = {description: [] for description in all_descriptions}
+    for person in unique_names:
+        df_person = df[df["Name"] == person].copy()
+
+        for _, row in df_person.iterrows():
+            description = row["Description"].strip()
+            count_descriptions[description].append(person)
+    for key, list_people in count_descriptions.items():
+        count_descriptions[key] = (len(list_people) / len(unique_names), list_people)
+    sorted_dict = dict(sorted(count_descriptions.items(), key=lambda item: (item[0], item[1][0] if item[1] else "")))
+    print(all_descriptions)
+
+    # Save to a readable JSON file
+    with open(f"{current_dir}/payroll_keys.json", "w", encoding="utf-8") as f:
+        json.dump(keys, f, indent=2, ensure_ascii=False)
+    with open(f"{current_dir}/descriptions_count.json", "w", encoding="utf-8") as f:
+        json.dump(sorted_dict, f, indent=2, ensure_ascii=False)
+
+    if "Description" in df.columns:
+        df["Description"] = df["Description"].str.strip()
+        df["Description"] = df["Description"].map(german_to_english).fillna(df["Description"])
+
+    # Save translated CSV
+    df.to_csv(f"{current_dir}/Lohnkonto2022-2025_english.csv", index=False, encoding="utf-8")

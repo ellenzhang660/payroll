@@ -14,10 +14,27 @@
       },
     },
     {
-      "name": "Debug llama zero shot",
+      "name": "Debug llama evaluate",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/src/payroll/llama/zero_shot.py", // to debug sagemaker
+      "program": "${workspaceFolder}/src/payroll/llama/evaluate/evaluate.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "args": [
+        "--dataset", "payroll",
+        "--from_dir", "${workspaceFolder}/lightning_logs",
+        "--checkpoint_path", "version_2/checkpoints/epoch=24-step=1250.ckpt"
+      ]
+    },
+    {
+      "name": "Debug llama fineutne",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/payroll/llama/finetune/finetune.py", // to debug sagemaker
       "console": "integratedTerminal",
       "justMyCode": true,  // <-- Allows stepping into libraries
       "subProcess": true,  // important for multi-thread or multi-process

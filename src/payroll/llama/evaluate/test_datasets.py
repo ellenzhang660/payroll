@@ -8,26 +8,29 @@ from torch.utils.data import Dataset
 from src.dataset.austria_payroll.dataset import PayrollDataset
 
 
-def init_dataset(dataset: Literal["payroll", "generic", "retail"]) -> Dataset:
+def init_dataset(dataset: Literal["payroll", "generic", "retail", "weather"]) -> Dataset:
     if dataset == "payroll":
-        # return LlamaDataset(target_column="Gross total")
+        return LlamaDataset(target_column="Gross total")
         # return LlamaDataset(target_column="** Payout **")
-        return LlamaDataset(target_column="Gross pay")
+        # return LlamaDataset(target_column="Gross pay", mode = mode)
     elif dataset == "generic":
         return GenericDataset()
     elif dataset == "retail":
         return RetailDataset()
+    elif dataset == "weather":
+        return WeatherDataset()
     else:
         raise ValueError
 
 
 class LlamaDataset(PayrollDataset):
     def __init__(self, target_column: str):
-        self.target_colum = target_column
+        self.target_column = target_column
         super().__init__()
         self.prediction_length = 6
-        self.context_length = 36
+        self.context_length = 32
         self._assert_output()
+        assert self.target_column in self.available_keys
 
     def _assert_output(self):
         result = self.__getitem__(0)
@@ -61,20 +64,15 @@ class LlamaDataset(PayrollDataset):
         df_pivoted["Month"] = pd.to_datetime(df_pivoted["Month"], format="%B_%Y")
         df_pivoted = df_pivoted.sort_values("Month")
 
-        df_pivoted.columns
-
-        cols_except_month_and_id = df_pivoted.columns[~df_pivoted.columns.isin(["Month", "ID"])].tolist()
-        cols_except_month_and_id
-
         # Now, df should haev month as the index, and columns for each of the 42? payroll descriptions, and an ID column
 
         dataset = PandasDataset.from_long_dataframe(
-            df_pivoted, target=self.target_colum, timestamp="Month", item_id="ID", freq=self.freq
+            df_pivoted, target=self.target_column, timestamp="Month", item_id="ID", freq=self.freq
         )
 
         return dataset
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> PandasDataset:
         results = super().__getitem__(idx)
         dataset = self.reformat(df=results["df"])
 
@@ -113,7 +111,7 @@ class GenericDataset(Dataset):
         dataset = PandasDataset.from_long_dataframe(df, target="target", item_id="item_id")
         return dataset
 
-    def __getitem__(self, idx: int):
+    def __getitem__(self, idx: int) -> PandasDataset:
         id = self.unique_ids[idx]
         df_person = self.df[self.df[self.id_var] == id].copy()
         dataset = self.reformat(df=df_person)
@@ -146,6 +144,47 @@ class RetailDataset(Dataset):
         test_data = [{"start": df.index[0], "target": df[i].values} for i in df.columns]
         dataset = ListDataset(data_iter=test_data, freq=self.freq)
         return dataset
+
+    def __getitem__(self, idx: int):
+        id = self.unique_ids[idx]
+        df_person = self.df[self.df[self.id_var] == id].copy()
+        dataset = self.reformat(df=df_person)
+        return dataset
+
+
+class WeatherDataset(Dataset):
+    def __init__(self):
+        super().__init__()
+        self.prediction_length = 7
+        self.context_length = 21
+
+        self.df = pd.read_csv(
+            "https://raw.githubusercontent.com/joshuajnoble/Lag-Llama-Tutorial/main/daily-min-temperatures.csv"
+        )
+        self.df["Date"] = pd.to_datetime(self.df["Date"])
+        self.df = self.df.set_index("Date")
+        self.df = self.df.resample("D").sum().interpolate("linear")
+        for col in self.df.columns:
+            # Check if column is not of string type
+            if self.df[col].dtype != "object" and pd.api.types.is_string_dtype(self.df[col]) == False:
+                self.df[col] = self.df[col].astype("float32")
+
+        self.freq = "1d"
+        self.target = "Temp"
+        train_end = round(len(self.df) * 0.7)
+
+        valid_end = round(len(self.df) * 0.9)
+
+        train = PandasDataset(self.df[:train_end], freq="1d", target="Temp")
+
+        valid = PandasDataset(self.df[train_end:valid_end], freq="1d", target="Temp")
+
+        test = PandasDataset(self.df[valid_end:], freq="1d", target="Temp")
+        self._assert_output()
+
+    def _assert_output(self):
+        result = self.__getitem__(0)
+        print(result)
 
     def __getitem__(self, idx: int):
         id = self.unique_ids[idx]

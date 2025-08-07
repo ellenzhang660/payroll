@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,7 @@ import plotly.express as px
 import plotly.io as pio
 from torch.utils.data import Dataset
 
+from src.dataset.austria_payroll.data_convert import german_to_english
 from src.utils import logger
 
 
@@ -26,6 +28,7 @@ class PayrollDataset(Dataset):
 
     home = Path(__file__).parent
     url = f"{home}/Lohnkonto2022-2025_english.csv"
+    keys = f"{home}/descriptions_count.json"
 
     def __init__(self):
         super().__init__()
@@ -36,12 +39,16 @@ class PayrollDataset(Dataset):
         ]
         self.df[self.time_cols] = (
             self.df[self.time_cols]
-            .applymap(lambda x: str(x).replace(",", ".").replace("–", "0") if pd.notnull(x) else "0")
+            .apply(lambda col: col.map(lambda x: str(x).replace(",", ".").replace("–", "0") if pd.notnull(x) else "0"))
             .fillna("0")
             .astype("float32")
         )
         self.id_var = "ID"
         self.freq = "M"  # monthly
+        with open(f"{self.keys}", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            keys_with_1 = [k for k, v in data.items() if v[0] == 1.0]
+            self.available_keys = list(map(german_to_english.get, keys_with_1))
         self._log_preprocess()
 
     @abstractmethod
@@ -53,6 +60,7 @@ class PayrollDataset(Dataset):
         return len(self.unique_ids)
 
     def _log_preprocess(self):
+        logger.info(f"Available keys: {self.available_keys}")
         logger.info(
             "For each unique ID, we filter out the series with all zero values, and also find the duplicate descriptions (although we don't remove them)"
         )

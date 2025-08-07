@@ -207,6 +207,7 @@ marimo/_lsp/
 __marimo__/
 
 lag-llama/
-src/payroll/llama/results/
+**/results/
 *.csv
 *.json
+lightning_logs/
