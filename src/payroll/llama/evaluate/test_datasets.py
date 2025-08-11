@@ -1,42 +1,48 @@
-from typing import Literal
+import json
+from pathlib import Path
 
 import pandas as pd
-from gluonts.dataset.common import ListDataset
 from gluonts.dataset.pandas import PandasDataset
-from torch.utils.data import Dataset
 
-from src.dataset.austria_payroll.dataset import PayrollDataset
-
-
-def init_dataset(dataset: Literal["payroll", "generic", "retail", "weather"]) -> Dataset:
-    if dataset == "payroll":
-        return LlamaDataset(target_column="Gross total")
-        # return LlamaDataset(target_column="** Payout **")
-        # return LlamaDataset(target_column="Gross pay", mode = mode)
-    elif dataset == "generic":
-        return GenericDataset()
-    elif dataset == "retail":
-        return RetailDataset()
-    elif dataset == "weather":
-        return WeatherDataset()
-    else:
-        raise ValueError
+from src.dataset.austria_payroll.data_convert import german_to_english
+from src.payroll.llama.evaluate.base_dataset import BaseTestDataset, TestDatasetAttributes
+from src.utils import logger
 
 
-class LlamaDataset(PayrollDataset):
+class PayrollDataset(BaseTestDataset):
+    """
+    Base dataset for payroll testing
+    """
+
+    home = Path(__file__).parents[3]
+    url = f"{home}/dataset/austria_payroll/Lohnkonto2022-2025_english.csv"
+    keys = f"{home}/dataset/austria_payroll/descriptions_count.json"
+
     def __init__(self, target_column: str):
-        self.target_column = target_column
-        super().__init__()
-        self.prediction_length = 6
-        self.context_length = 32
-        self._assert_output()
-        assert self.target_column in self.available_keys
+        self.df = pd.read_csv(self.url, index_col=0, parse_dates=True)
+        self.time_cols = self.df.columns[
+            self.df.columns.get_loc("January_2022") : self.df.columns.get_loc("Total Amount")
+        ]
+        super().__init__(target_column=target_column)
 
-    def _assert_output(self):
-        result = self.__getitem__(0)
-        print(result)
+    def _init_attributes(self) -> TestDatasetAttributes:
+        with open(f"{self.keys}", "r", encoding="utf-8") as f:
+            data = json.load(f)
+            keys_with_1 = [k for k, v in data.items() if v[0] == 1.0]  # if == 1.0, all people have this column
+            self.available_keys = tuple([german_to_english[k] for k in keys_with_1 if k in german_to_english])
+        unique_ids = self.df["ID"].unique().tolist()  # type: ignore
+        return TestDatasetAttributes(
+            prediction_length=6, context_length=32, available_target_columns=self.available_keys, freq="M", id_var="ID"
+        )
 
-    def reformat(self, df: pd.DataFrame) -> PandasDataset:
+    def preprocess(self) -> pd.DataFrame:
+        df = self.df[self.df[self.time_cols].any(axis=1)].copy()  # filter out zero rows
+        return df
+
+    def _log_preprocess(self):
+        logger.info("We filter out the series with all zero values")
+
+    def _reformat(self, df: pd.DataFrame) -> PandasDataset:
         """
         Input: multivariate dataframe
         rows = Different time series
@@ -67,127 +73,47 @@ class LlamaDataset(PayrollDataset):
         # Now, df should haev month as the index, and columns for each of the 42? payroll descriptions, and an ID column
 
         dataset = PandasDataset.from_long_dataframe(
-            df_pivoted, target=self.target_column, timestamp="Month", item_id="ID", freq=self.freq
+            df_pivoted,
+            target=self.target_column,
+            timestamp="Month",
+            item_id=self.attributes.id_var,
+            freq=self.attributes.freq,
         )
 
         return dataset
 
-    def __getitem__(self, idx: int) -> PandasDataset:
-        results = super().__getitem__(idx)
-        dataset = self.reformat(df=results["df"])
 
-        return dataset
+class GenericDataset(BaseTestDataset):
 
+    url = (
+        "https://gist.githubusercontent.com/rsnirwan/a8b424085c9f44ef2598da74ce43e7a3"
+        "/raw/b6fdef21fe1f654787fa0493846c546b7f9c4df2/ts_long.csv"
+    )
 
-class GenericDataset(Dataset):
-    def __init__(self):
-        url = (
-            "https://gist.githubusercontent.com/rsnirwan/a8b424085c9f44ef2598da74ce43e7a3"
-            "/raw/b6fdef21fe1f654787fa0493846c546b7f9c4df2/ts_long.csv"
+    def __init__(self, target_column: str):
+        self.df = pd.read_csv(self.url, index_col=0, parse_dates=True)
+        super().__init__(target_column=target_column)
+
+    def _init_attributes(self) -> TestDatasetAttributes:
+        """Initializes class attributes"""
+        unique_ids = self.df["item_id"].unique().tolist()
+        return TestDatasetAttributes(
+            prediction_length=24, context_length=32, available_target_columns=("target",), freq="", id_var="item_id"
         )
-        self.df = pd.read_csv(url, index_col=0, parse_dates=True)
 
+    def preprocess(self) -> pd.DataFrame:
         # Set numerical columns as float32
         for col in self.df.columns:
             # Check if column is not of string type
             if self.df[col].dtype != "object" and pd.api.types.is_string_dtype(self.df[col]) == False:
                 self.df[col] = self.df[col].astype("float32")
+        return self.df
 
-        self.unique_ids = self.df["item_id"].unique().tolist()
-        self.id_var = "item_id"
-        self.prediction_length = 24
-        self.context_length = 32
-        self._assert_output()
+    def _log_preprocess(self):
+        pass
 
-    def _assert_output(self):
-        result = self.__getitem__(0)
-        print(result)
-
-    def __len__(self):
-        return len(self.unique_ids)
-
-    def reformat(self, df: pd.DataFrame) -> PandasDataset:
-        # Create the Pandas
-        dataset = PandasDataset.from_long_dataframe(df, target="target", item_id="item_id")
-        return dataset
-
-    def __getitem__(self, idx: int) -> PandasDataset:
-        id = self.unique_ids[idx]
-        df_person = self.df[self.df[self.id_var] == id].copy()
-        dataset = self.reformat(df=df_person)
-        return dataset
-
-
-class RetailDataset(Dataset):
-    def __init__(self):
-        self.df = pd.read_csv(
-            "https://gist.githubusercontent.com/dannymorris/ac176586e0236bd9278e9c81e06851a8/raw/54fd7c7520702d3dd7d4bd59c9dfbed5385af438/aus_retail.csv"
+    def _reformat(self, df: pd.DataFrame) -> PandasDataset:
+        dataset = PandasDataset.from_long_dataframe(
+            df, target=self.target_column, item_id=self.attributes.id_var, freq=self.attributes.freq
         )
-        self.df = self.df.set_index("Month")
-
-        self.unique_ids = self.df["item_id"].unique().tolist()
-        self.id_var = "item_id"
-        self.prediction_length = 12
-        self.context_length = 32
-        self.freq = "1ME"
-        self._assert_output()
-
-    def _assert_output(self):
-        result = self.__getitem__(0)
-        print(result)
-
-    def __len__(self):
-        return len(self.unique_ids)
-
-    def reformat(self, df: pd.DataFrame) -> ListDataset:
-        # Create the Pandas
-        test_data = [{"start": df.index[0], "target": df[i].values} for i in df.columns]
-        dataset = ListDataset(data_iter=test_data, freq=self.freq)
-        return dataset
-
-    def __getitem__(self, idx: int):
-        id = self.unique_ids[idx]
-        df_person = self.df[self.df[self.id_var] == id].copy()
-        dataset = self.reformat(df=df_person)
-        return dataset
-
-
-class WeatherDataset(Dataset):
-    def __init__(self):
-        super().__init__()
-        self.prediction_length = 7
-        self.context_length = 21
-
-        self.df = pd.read_csv(
-            "https://raw.githubusercontent.com/joshuajnoble/Lag-Llama-Tutorial/main/daily-min-temperatures.csv"
-        )
-        self.df["Date"] = pd.to_datetime(self.df["Date"])
-        self.df = self.df.set_index("Date")
-        self.df = self.df.resample("D").sum().interpolate("linear")
-        for col in self.df.columns:
-            # Check if column is not of string type
-            if self.df[col].dtype != "object" and pd.api.types.is_string_dtype(self.df[col]) == False:
-                self.df[col] = self.df[col].astype("float32")
-
-        self.freq = "1d"
-        self.target = "Temp"
-        train_end = round(len(self.df) * 0.7)
-
-        valid_end = round(len(self.df) * 0.9)
-
-        train = PandasDataset(self.df[:train_end], freq="1d", target="Temp")
-
-        valid = PandasDataset(self.df[train_end:valid_end], freq="1d", target="Temp")
-
-        test = PandasDataset(self.df[valid_end:], freq="1d", target="Temp")
-        self._assert_output()
-
-    def _assert_output(self):
-        result = self.__getitem__(0)
-        print(result)
-
-    def __getitem__(self, idx: int):
-        id = self.unique_ids[idx]
-        df_person = self.df[self.df[self.id_var] == id].copy()
-        dataset = self.reformat(df=df_person)
         return dataset

@@ -211,3 +211,4 @@ lag-llama/
 *.csv
 *.json
 lightning_logs/
+model_checkpoints/

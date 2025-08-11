@@ -1,10 +1,17 @@
 from typing import Literal
 
 from src.payroll.llama.finetune.base_dataset import FinetuneDataset
-from src.payroll.llama.finetune.dataset import PayrollDataset, WeatherDataset
+from src.payroll.llama.finetune.created_datasets import PayrollDataset, WeatherDataset
 
 
 def init_dataset(dataset: Literal["payroll", "weather"]) -> dict[str, FinetuneDataset]:
+    """
+    Given daaset, returns a dictionary mapping
+        key: target_column
+        val: class FinetuneDataset(ClassAttributes):
+            train_dataset: PandasDataset
+            val_dataset: PandasDataset
+    """
     if dataset == "payroll":
         base = PayrollDataset()
     elif dataset == "weather":

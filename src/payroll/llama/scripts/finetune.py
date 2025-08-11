@@ -11,6 +11,18 @@ from src.payroll.llama.finetune.lagllama_finetuner import FinetuneLagLlama
 """
 Fineuner for lagllama on given dataset
 
+Args
+----
+    dataset
+        dataset to finetune lagllama on, of class BaseFinetuningDataset
+    save_dir
+        where to save the model checkpoints
+
+Returns
+-------
+    Fineunes a lagllama model on all available target columns in the original dataset, saves each to a checkpoint 
+    which can be loaded for evaluation
+
 To run, cd into root repo and run
 export PYTHONPATH=$(pwd)
 poetry run python src/payroll/llama/finetune/finetune.py --dataset payroll
@@ -20,6 +32,7 @@ poetry run python src/payroll/llama/finetune/finetune.py --dataset payroll
 def set_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=str, required=True, choices=["payroll", "generic", "weather"])
+    parser.add_argument("--save_dir", type=str, default="model_checkpoints/lag-llama")
     return parser.parse_args()
 
 
@@ -37,5 +50,6 @@ if __name__ == "__main__":
             num_samples=num_samples,
             target_column=target_column,
             batch_size=batch_size,
+            save_dir=args.save_dir,
         )
         finetune_llama.finetune(train=dataset.train_dataset, valid=dataset.val_dataset)

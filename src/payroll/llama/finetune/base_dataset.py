@@ -1,25 +1,31 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from typing import Tuple
 
 import pandas as pd
-from gluonts.dataset.pandas import PandasDataset
+from gluonts.dataset.pandas import PandasDataset  # type: ignore
 
 
-@dataclass
+@dataclass(frozen=True)
 class ClassAttributes:
     prediction_length: int
     context_length: int
-    available_target_columns: list[str]  # as LagLlama is univariate, can only finetune on one column at a time
+    available_target_columns: Tuple[str, ...]
     freq: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class FinetuneDataset(ClassAttributes):
     train_dataset: PandasDataset
     val_dataset: PandasDataset
 
 
 class BaseFinetuningDataset(ABC):
+    """
+    Base class for lagllama finetune dataset
+    Subclasses implement deails
+    """
+
     def __init__(self):
         self.attributes = self._init_attributes()
         self._log_preprocess()
@@ -31,7 +37,7 @@ class BaseFinetuningDataset(ABC):
         pass
 
     @property
-    def available_target_columns(self) -> list[str]:
+    def available_target_columns(self) -> Tuple[str, ...]:
         return self.attributes.available_target_columns
 
     @abstractmethod

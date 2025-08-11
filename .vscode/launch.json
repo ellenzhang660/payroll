@@ -17,7 +17,7 @@
       "name": "Debug llama evaluate",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/src/payroll/llama/evaluate/evaluate.py", // to debug sagemaker
+      "program": "${workspaceFolder}/src/payroll/llama/scripts/evaluate.py", // to debug sagemaker
       "console": "integratedTerminal",
       "justMyCode": false,  // <-- Allows stepping into libraries
       "subProcess": true,  // important for multi-thread or multi-process
@@ -34,9 +34,9 @@
       "name": "Debug llama fineutne",
       "type": "python",
       "request": "launch",
-      "program": "${workspaceFolder}/src/payroll/llama/finetune/finetune.py", // to debug sagemaker
+      "program": "${workspaceFolder}/src/payroll/llama/scripts/finetune.py", // to debug sagemaker
       "console": "integratedTerminal",
-      "justMyCode": true,  // <-- Allows stepping into libraries
+      "justMyCode": false,  // <-- Allows stepping into libraries
       "subProcess": true,  // important for multi-thread or multi-process
       "env": {
         "PYTHONPATH": "${workspaceFolder}"

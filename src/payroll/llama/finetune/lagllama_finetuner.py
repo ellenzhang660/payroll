@@ -1,5 +1,6 @@
 # finetuning script from https://www.ibm.com/think/tutorials/lag-llama
 
+import os
 import sys
 from datetime import date
 from types import ModuleType
@@ -69,6 +70,11 @@ gluonts_module.NegativeLogLikelihood = NegativeLogLikelihood
 
 
 class FinetuneLagLlama:
+    """
+    Fineune wrapper for Lagllama
+
+    """
+
     def __init__(
         self,
         prediction_length: int,
@@ -77,6 +83,7 @@ class FinetuneLagLlama:
         num_samples: int,
         target_column: str,
         batch_size: int,
+        save_dir: str,
     ):
         ckpt = torch.load("lag-llama/lag-llama.ckpt", map_location=device, weights_only=False)
         estimator_args = ckpt["hyper_parameters"]["model_kwargs"]
@@ -103,14 +110,15 @@ class FinetuneLagLlama:
             num_parallel_samples=num_samples,
             trainer_kwargs={
                 "max_epochs": 50,
+                "default_root_dir": f"{save_dir}/{target_column}",  # path to save checkpoints/logs
             },  # lightning trainer arguments
         )
         self.num_samples = num_samples
         self.target_column = target_column
+        self.save_dir = save_dir
 
     def finetune(self, train: PandasDataset, valid: PandasDataset):
         self.finetuned_predictor = self.finetune_estimator.train(
             train, valid, cache_data=True, shuffle_buffer_length=1000
         )
-        torch.save(self.finetuned_predictor, f"lag-llama-models/{self.target_column}" + date.today().strftime("%m-%d"))
-        print(f"model saved at lag-llama-models/{self.target_column}")
+        return self.finetuned_predictor

@@ -4,13 +4,24 @@ from pathlib import Path
 
 import torch
 
+from src.payroll.llama.evaluate.base_dataset import BaseTestDataset
 from src.payroll.llama.evaluate.lagllama_evaluator import LagLlamaEvaluator
-from src.payroll.llama.evaluate.test_datasets import init_dataset
 
 
 current_dir = Path(__file__).parent
 """
 Evaluator for test set, runs LagLlama forecasting from a checkpoint and visualizes/evaluate the metrics
+
+Args:
+----
+dataset
+    dataset to evaluate on. 
+from_dir
+    directory the model is stored at, e.g.
+    ${workspaceFolder}/lightning_logs
+checkpoint_path
+    the rest of the model path,
+    eg. version_2/checkpoints/epoch=24-step=1250.ckpt
 
 To run, cd into root repo and run
 export PYTHONPATH=$(pwd)
@@ -30,12 +41,12 @@ if __name__ == "__main__":
     args = set_args()
     save_dir = f"{current_dir}/results/{args.dataset}/{args.checkpoint_path}"
     checkpoint_path = os.path.join(args.from_dir, args.checkpoint_path)
-    dataset = init_dataset(dataset=args.dataset)
+    dataset: BaseTestDataset = init_dataset(dataset=args.dataset)
     device = torch.device("cpu")
     llama_forecast = LagLlamaEvaluator(
         checkpoint_path=checkpoint_path,
-        prediction_length=dataset.prediction_length,
-        context_length=dataset.context_length,
+        prediction_length=dataset.attributes.prediction_length,
+        context_length=dataset.attributes.context_length,
         device=device,
         use_rope_scaling=True,
         num_samples=10,

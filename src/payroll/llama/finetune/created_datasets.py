@@ -27,7 +27,7 @@ class PayrollDataset(BaseFinetuningDataset):
         with open(f"{self.keys}", "r", encoding="utf-8") as f:
             data = json.load(f)
             keys_with_1 = [k for k, v in data.items() if v[0] == 1.0]  # if == 1.0, all people have this column
-            self.available_keys: list[str] = [german_to_english[k] for k in keys_with_1 if k in german_to_english]
+            self.available_keys = tuple([german_to_english[k] for k in keys_with_1 if k in german_to_english])
         super().__init__()
 
     def _init_attributes(self) -> ClassAttributes:
@@ -95,7 +95,7 @@ class WeatherDataset(BaseFinetuningDataset):
         super().__init__()
 
     def _init_attributes(self) -> ClassAttributes:
-        return ClassAttributes(prediction_length=8, context_length=32, available_target_columns=["Temp"], freq="1d")
+        return ClassAttributes(prediction_length=8, context_length=32, available_target_columns=("Temp",), freq="1d")
 
     def _log_preprocess(self):
         pass
