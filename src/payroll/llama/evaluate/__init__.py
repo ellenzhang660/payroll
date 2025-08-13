@@ -1,10 +1,10 @@
-from typing import Literal
+from typing import Literal, Tuple
 
 from src.payroll.llama.evaluate.base_dataset import BaseTestDataset
 from src.payroll.llama.evaluate.test_datasets import GenericDataset, PayrollDataset
 
 
-def init_dataset(dataset: Literal["payroll", "generic"]) -> dict[str, BaseTestDataset]:
+def init_dataset(dataset: Literal["payroll", "generic"]) -> Tuple[dict[str, BaseTestDataset], Tuple[str, ...]]:
     """
     Given daaset, returns a dictionary mapping
         key: target_column
@@ -14,12 +14,14 @@ def init_dataset(dataset: Literal["payroll", "generic"]) -> dict[str, BaseTestDa
     """
     if dataset == "payroll":
         base = PayrollDataset(target_column="Gross pay")
+        mode = PayrollDataset
     elif dataset == "generic":
         base = GenericDataset(target_column="target")
+        mode = GenericDataset
     else:
         raise ValueError
 
     datasets: dict[str, BaseTestDataset] = {}
     for target_column in base.available_target_columns:
-        datasets[target_column] = base[target_column]
-    return datasets
+        datasets[target_column] = mode(target_column=target_column)
+    return datasets, base.available_target_columns

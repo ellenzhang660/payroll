@@ -43,13 +43,16 @@ if __name__ == "__main__":
     num_samples = 20
     batch_size = 64
     for target_column, dataset in datasets_dict.items():
-        finetune_llama = FinetuneLagLlama(
-            prediction_length=dataset.prediction_length,
-            context_length=dataset.context_length,
-            device=device,
-            num_samples=num_samples,
-            target_column=target_column,
-            batch_size=batch_size,
-            save_dir=args.save_dir,
-        )
-        finetune_llama.finetune(train=dataset.train_dataset, valid=dataset.val_dataset)
+        try:
+            finetune_llama = FinetuneLagLlama(
+                prediction_length=dataset.prediction_length,
+                context_length=dataset.context_length,
+                device=device,
+                num_samples=num_samples,
+                target_column=target_column,
+                batch_size=batch_size,
+                save_dir=args.save_dir,
+            )
+            finetune_llama.finetune(train=dataset.train_dataset, valid=dataset.val_dataset)
+        except Exception as e:
+            print(f"error for {target_column}: {e}")

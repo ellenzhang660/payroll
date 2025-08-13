@@ -57,8 +57,11 @@ class BaseTestDataset(Dataset):  # type: ignore
     def __len__(self):
         return len(self.unique_ids)
 
+    def get_id(self, idx: int):
+        return self.unique_ids[idx]
+
     def __getitem__(self, idx: int) -> PandasDataset:
         id = self.unique_ids[idx]
-        df_person = self.df[self.df[self.attributes.id_var] == id].copy()
-        dataset = self._reformat(df=df_person)
+        df_person = self.df[self.df[self.attributes.id_var] == id].copy()  # type: ignore
+        dataset = self._reformat(df=df_person)  # type: ignore
         return dataset

@@ -64,6 +64,7 @@ class LagLlamaEvaluator:
         use_rope_scaling: bool,
         num_samples: int,
         save_dir: Optional[str],
+        target_column: str,
     ):
         ckpt = torch.load(checkpoint_path, map_location=device, weights_only=False)
         estimator_args = ckpt["hyper_parameters"]["model_kwargs"]
@@ -94,6 +95,7 @@ class LagLlamaEvaluator:
         self.predictor = estimator.create_predictor(transformation, lightning_module)
         self.num_samples = num_samples
         self.save_dir = save_dir
+        self.target_column = target_column
         self.evaluator = Evaluator()
 
     def _forecast(self, dataset: PandasDataset) -> Tuple[list[Forecast], list[Series]]:
@@ -129,7 +131,7 @@ class LagLlamaEvaluator:
             ts = ts.copy()
             ts.index = ts.index.to_timestamp()
 
-        # Prepare forecast values
+            # Prepare forecast values
         forecast_index = pd.date_range(
             start=forecast.start_date.to_timestamp(), periods=forecast.samples.shape[1], freq=ts.index.freq or "M"
         )
@@ -137,11 +139,12 @@ class LagLlamaEvaluator:
         forecast_mean = forecast.mean
         lower, upper = np.percentile(forecast.samples, prediction_interval, axis=0)
 
-        # Plotting
-        plt.figure(figsize=(14, 6))
-        plt.plot(ts.index, ts.values, label="Target", linewidth=2)
-        plt.plot(forecast_index, forecast_mean, color="green", label="Forecast (mean)")
-        plt.fill_between(
+        # ✅ Create figure/axes explicitly
+        fig, ax = plt.subplots(figsize=(14, 6))
+
+        ax.plot(ts.index, ts.values, label="Target", linewidth=2)
+        ax.plot(forecast_index, forecast_mean, color="green", label="Forecast (mean)")
+        ax.fill_between(
             forecast_index,
             lower,
             upper,
@@ -150,27 +153,22 @@ class LagLlamaEvaluator:
             label=f"{prediction_interval[1] - prediction_interval[0]}% Prediction Interval",
         )
 
-        plt.title(
-            f"Start : {str(metrics["forecast_start"])} for item: {forecast.item_id} with MAPE: {format_metric("MAPE")}%"
+        ax.set_title(
+            f"Start : {str(metrics['forecast_start'])} for {self.target_column} " f"with MAPE: {format_metric('MAPE')}%"
         )
-        plt.xlabel("Time")
-        plt.ylabel("Value")
-        plt.xticks(rotation=45)
-        plt.grid(True)
-        plt.legend()
-
-        # Format x-axis
-        ax = plt.gca()
+        ax.set_xlabel("Time")
+        ax.set_ylabel("Value")
         ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
+        plt.xticks(rotation=45)
+        ax.grid(True)
+        ax.legend()
 
         plt.tight_layout()
 
         if self.save_dir:
-            plt.savefig(f"{self.save_dir}/{forecast.item_id}")
-            # logger.info(f"Saved forecast plot to: {save_path}")
-        else:
-            plt.show()
-        plt.close()
+            fig.savefig(f"{self.save_dir}/{forecast.item_id}")
+            plt.close(fig)
+        return fig  # return the figure object
 
     def _calculate_metrics(self, forecast: list[Forecast], ts: list[Series]) -> Tuple[dict[str, float], pd.DataFrame]:
         """
@@ -194,6 +192,11 @@ class LagLlamaEvaluator:
             forecast, ts = self._forecast(dataset=dataframe)
             _, ts_metrics = self._calculate_metrics(forecast=forecast, ts=ts)
             self._visualize_forecast(forecast=forecast[0], ts=ts[0], metrics=ts_metrics.iloc[0])
+
+    def stream_evaluation(self, item: PandasDataset):
+        forecast, ts = self._forecast(dataset=item)
+        _, ts_metrics = self._calculate_metrics(forecast=forecast, ts=ts)
+        return self._visualize_forecast(forecast=forecast[0], ts=ts[0], metrics=ts_metrics.iloc[0])
 
 
 """

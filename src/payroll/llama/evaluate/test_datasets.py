@@ -30,17 +30,22 @@ class PayrollDataset(BaseTestDataset):
             data = json.load(f)
             keys_with_1 = [k for k, v in data.items() if v[0] == 1.0]  # if == 1.0, all people have this column
             self.available_keys = tuple([german_to_english[k] for k in keys_with_1 if k in german_to_english])
-        unique_ids = self.df["ID"].unique().tolist()  # type: ignore
         return TestDatasetAttributes(
             prediction_length=6, context_length=32, available_target_columns=self.available_keys, freq="M", id_var="ID"
         )
 
     def preprocess(self) -> pd.DataFrame:
+        self.df[self.time_cols] = (
+            self.df[self.time_cols]
+            .apply(lambda col: col.map(lambda x: str(x).replace(",", ".").replace("–", "0") if pd.notnull(x) else "0"))
+            .fillna("0")
+            .astype("float32")
+        )
         df = self.df[self.df[self.time_cols].any(axis=1)].copy()  # filter out zero rows
         return df
 
     def _log_preprocess(self):
-        logger.info("We filter out the series with all zero values")
+        logger.info("We reformat numbers to float32 and filter out the series with all zero values")
 
     def _reformat(self, df: pd.DataFrame) -> PandasDataset:
         """
@@ -95,8 +100,6 @@ class GenericDataset(BaseTestDataset):
         super().__init__(target_column=target_column)
 
     def _init_attributes(self) -> TestDatasetAttributes:
-        """Initializes class attributes"""
-        unique_ids = self.df["item_id"].unique().tolist()
         return TestDatasetAttributes(
             prediction_length=24, context_length=32, available_target_columns=("target",), freq="", id_var="item_id"
         )
