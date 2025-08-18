@@ -213,3 +213,9 @@ lag-llama/
 lightning_logs/
 model_checkpoints/
 **/plan.txt
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
