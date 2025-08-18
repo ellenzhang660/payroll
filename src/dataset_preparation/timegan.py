@@ -30,8 +30,6 @@ def timegan(ori_data, parameters):
     no, seq_len, dim = ori_data.shape
     ori_time = np.array([seq_len]*no)
     max_seq_len = seq_len
-    dataset = make_tf_dataset(ori_data, ori_time, batch_size)
-    iterator = iter(dataset)  # Get an iterator for your training loop
 
     # Min-Max normalization
     def MinMaxScaler(data):
@@ -49,6 +47,9 @@ def timegan(ori_data, parameters):
     module_name = parameters['module']
     z_dim = dim
     gamma = 1.0
+
+    dataset = make_tf_dataset(ori_data, ori_time, batch_size)
+    iterator = iter(dataset)  # Get an iterator for your training loop
 
     # Build models
     embedder = build_rnn_model(dim, hidden_dim, module_name, hidden_dim, num_layers, name="embedder")

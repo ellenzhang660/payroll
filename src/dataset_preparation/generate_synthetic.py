@@ -5,8 +5,8 @@ from src.dataset_preparation.timegan import timegan
 # 2. Data loading
 from TimeGAN.data_loading import real_data_loading, sine_data_generation
 # 3. Metrics
-from TimeGAN.metrics.discriminative_metrics import discriminative_score_metrics
-from TimeGAN.metrics.predictive_metrics import predictive_score_metrics
+# from TimeGAN.metrics.discriminative_metrics import discriminative_score_metrics
+# from TimeGAN.metrics.predictive_metrics import predictive_score_metrics
 from TimeGAN.metrics.visualization_metrics import visualization
 import os
 ## Data loading
