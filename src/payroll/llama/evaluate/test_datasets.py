@@ -76,7 +76,7 @@ class PayrollDataset(BaseTestDataset):
         df_pivoted = df_pivoted.sort_values("Month")
 
         # Now, df should haev month as the index, and columns for each of the 42? payroll descriptions, and an ID column
-
+        df_pivoted = df_pivoted.tail(self.attributes.context_length)
         dataset = PandasDataset.from_long_dataframe(
             df_pivoted,
             target=self.target_column,

@@ -15,6 +15,7 @@ from lag_llama.gluon.estimator import LagLlamaEstimator
 from pandas import Series
 from torch.utils.data import Dataset
 from tqdm import tqdm
+from gluonts.model.predictor import Predictor
 
 
 class LagLlamaEvaluator:
@@ -131,7 +132,7 @@ class LagLlamaEvaluator:
             ts = ts.copy()
             ts.index = ts.index.to_timestamp()
 
-            # Prepare forecast values
+        # Prepare forecast values
         forecast_index = pd.date_range(
             start=forecast.start_date.to_timestamp(), periods=forecast.samples.shape[1], freq=ts.index.freq or "M"
         )
@@ -197,6 +198,11 @@ class LagLlamaEvaluator:
         forecast, ts = self._forecast(dataset=item)
         _, ts_metrics = self._calculate_metrics(forecast=forecast, ts=ts)
         return self._visualize_forecast(forecast=forecast[0], ts=ts[0], metrics=ts_metrics.iloc[0])
+
+    def get_forecast_for_unseen(self, item: PandasDataset):
+        forecast_it = self.predictor.predict(item)
+        forecasts = list(forecast_it)
+        return forecasts
 
 
 """

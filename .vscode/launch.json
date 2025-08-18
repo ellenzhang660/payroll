@@ -2,12 +2,54 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug database",
+      "type": "python",
+      "request": "launch",
+      "module": "pytest",
+      // "program": "${workspaceFolder}/src/dataset/base_test.py", // to debug sagemaker
+      "args": [
+          "${workspaceFolder}/src/dataset/base_test.py", // your test file
+          "-s",                       // optional: show print output
+          "--maxfail=1"               // optional: stop after first failure
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
       "name": "Debug payroll",
       "type": "python",
       "request": "launch",
       "program": "${workspaceFolder}/time-series/payroll/data_visualization.py", // to debug sagemaker
       "console": "integratedTerminal",
       "justMyCode": false,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Debug store",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/payroll/llama/scripts/store.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": true,  // <-- Allows stepping into libraries
+      "subProcess": true,  // important for multi-thread or multi-process
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+    },
+    {
+      "name": "Debug dataset generation",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/src/dataset_preparation/generate_synthetic.py", // to debug sagemaker
+      "console": "integratedTerminal",
+      "justMyCode": true,  // <-- Allows stepping into libraries
       "subProcess": true,  // important for multi-thread or multi-process
       "env": {
         "PYTHONPATH": "${workspaceFolder}"
@@ -26,8 +68,6 @@
       },
       "args": [
         "--dataset", "payroll",
-        "--from_dir", "${workspaceFolder}/lightning_logs",
-        "--checkpoint_path", "version_2/checkpoints/epoch=24-step=1250.ckpt"
       ]
     },
     {

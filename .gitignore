@@ -212,3 +212,4 @@ lag-llama/
 *.json
 lightning_logs/
 model_checkpoints/
+**/plan.txt

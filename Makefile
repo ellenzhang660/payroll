@@ -10,3 +10,6 @@ format:
 
 lint:
 	poetry run ruff $(TARGETS)
+
+test:
+	poetry run pytest -s
