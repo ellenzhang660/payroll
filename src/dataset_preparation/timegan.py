@@ -180,6 +180,25 @@ def timegan(ori_data, parameters):
     # -----------------------------
     # Training loops
     # -----------------------------
+
+    import os
+    from datetime import datetime
+
+    # Generate timestamp, e.g., "2025-08-18_20-45-30"
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # Create a unique checkpoint directory
+    checkpoint_dir = f"model_checkpoints/timegan/{timestamp}"
+    os.makedirs(checkpoint_dir, exist_ok=True)
+
+    def save_timegan_models(epoch):
+        embedder.save(os.path.join(checkpoint_dir, f"embedder_epoch.keras"))
+        recovery.save(os.path.join(checkpoint_dir, f"recovery_epoch.keras"))
+        generator.save(os.path.join(checkpoint_dir, f"generator_epoch.keras"))
+        supervisor.save(os.path.join(checkpoint_dir, f"supervisor_epoch.keras"))
+        discriminator.save(os.path.join(checkpoint_dir, f"discriminator_epoch.keras"))
+
+
     # 1. Embedder training
     print("Start Embedding Network Training")
     for itt in range(iterations):
@@ -188,6 +207,7 @@ def timegan(ori_data, parameters):
         step_e_loss = train_embedder(X_mb)
         if itt % 1000 == 0:
             print(f"Embedding step {itt}/{iterations}, E_loss: {step_e_loss.numpy():.4f}")
+            save_timegan_models(itt)
     print("Finish Embedding Training\n")
 
     # 2. Generator supervised training
@@ -199,6 +219,7 @@ def timegan(ori_data, parameters):
         step_g_loss_s = train_generator_supervised(Z_mb, X_mb)
         if itt % 1000 == 0:
             print(f"Supervised step {itt}/{iterations}, G_loss_S: {step_g_loss_s.numpy():.4f}")
+            save_timegan_models(itt)
     print("Finish Generator Supervised Training\n")
 
     # 3. Joint training
@@ -217,6 +238,8 @@ def timegan(ori_data, parameters):
                     ', g_loss_s: ' + str(np.round(np.sqrt(step_g_loss_s),4)) + 
                     ', g_loss_v: ' + str(np.round(step_g_loss_v,4)) + 
                     ', e_loss_t0: ' + str(np.round(np.sqrt(step_e_loss_t0),4)))
+        if itt % 10 == 0:
+            save_timegan_models(itt)
 
     # -----------------------------
     # Generate synthetic data
