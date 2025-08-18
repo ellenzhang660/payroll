@@ -52,7 +52,7 @@ parameters['module'] = 'gru'
 parameters['hidden_dim'] = 24
 parameters['num_layer'] = 3
 # parameters['iterations'] = 10000
-parameters['iterations'] = 2000
+parameters['iterations'] = 1
 parameters['batch_size'] = 128
 
 # Run TimeGAN
