@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from typing import Literal
-from TimeGAN.utils import extract_time, random_generator, batch_generator
+from TimeGAN.utils import extract_time, random_generator_tf, make_tf_dataset #batch_generator
 
 def rnn_cell(module_name: Literal['gru', 'lstm', 'lstmLN'], hidden_dim: int):
     """Return a Keras RNN cell."""
@@ -30,6 +30,8 @@ def timegan(ori_data, parameters):
     no, seq_len, dim = ori_data.shape
     ori_time = np.array([seq_len]*no)
     max_seq_len = seq_len
+    dataset = make_tf_dataset(ori_data, ori_time, batch_size)
+    iterator = iter(dataset)  # Get an iterator for your training loop
 
     # Min-Max normalization
     def MinMaxScaler(data):
@@ -180,7 +182,8 @@ def timegan(ori_data, parameters):
     # 1. Embedder training
     print("Start Embedding Network Training")
     for itt in range(iterations):
-        X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
+        X_mb, T_mb = next(iterator)
+        # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
         step_e_loss = train_embedder(X_mb)
         if itt % 1000 == 0:
             print(f"Embedding step {itt}/{iterations}, E_loss: {step_e_loss.numpy():.4f}")
@@ -189,8 +192,9 @@ def timegan(ori_data, parameters):
     # 2. Generator supervised training
     print("Start Generator Supervised Training")
     for itt in range(iterations):
-        X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
-        Z_mb = random_generator(batch_size, z_dim, T_mb, max_seq_len)
+        X_mb, T_mb = next(iterator)
+        # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
+        Z_mb = random_generator_tf(batch_size, z_dim, T_mb, max_seq_len)
         step_g_loss_s = train_generator_supervised(Z_mb, X_mb)
         if itt % 1000 == 0:
             print(f"Supervised step {itt}/{iterations}, G_loss_S: {step_g_loss_s.numpy():.4f}")
@@ -199,9 +203,10 @@ def timegan(ori_data, parameters):
     # 3. Joint training
     print("Start Joint Training")
     for itt in range(2*iterations):
+        X_mb, T_mb = next(iterator)
         # Generator + Embedder update twice, discriminator update one
-        X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
-        Z_mb = random_generator(batch_size, z_dim, T_mb, max_seq_len)
+        # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
+        Z_mb = random_generator_tf(batch_size, z_dim, T_mb, max_seq_len)
         step_d_loss, step_g_loss_u, step_g_loss_s, step_g_loss_v, step_e_loss_t0 = train_joint_hybrid(X_mb, Z_mb, itt)
 
         if itt % 1 == 0:
@@ -215,7 +220,7 @@ def timegan(ori_data, parameters):
     # -----------------------------
     # Generate synthetic data
     # -----------------------------
-    Z_mb = random_generator(no, z_dim, ori_time, max_seq_len)
+    Z_mb = random_generator_tf(no, z_dim, ori_time, max_seq_len)
     H_hat = supervisor(generator(Z_mb, training=False), training=False)
     X_hat = recovery(H_hat, training=False).numpy()
     generated_data = [(X_hat[i,:ori_time[i],:] * max_val + min_val) for i in range(no)]

@@ -123,19 +123,43 @@ def rnn_cell(module_name, hidden_dim):
 #   return Z_mb
 
 
-def random_generator(batch_size, z_dim, T_mb, max_seq_len):
+# def random_generator(batch_size, z_dim, T_mb, max_seq_len):
+#     """
+#     Generate a batch of random vectors for the generator input.
+    
+#     Returns:
+#         Z_mb: NumPy array of shape (batch_size, max_seq_len, z_dim)
+#     """
+#     Z_mb = np.zeros((batch_size, max_seq_len, z_dim), dtype=np.float32)
+    
+#     for i in range(batch_size):
+#         # Fill only up to the actual sequence length
+#         Z_mb[i, :T_mb[i], :] = np.random.uniform(0., 1., (T_mb[i], z_dim))
+    
+#     return Z_mb
+
+
+def random_generator_tf(batch_size, z_dim, T_mb, max_seq_len):
     """
-    Generate a batch of random vectors for the generator input.
+    Generate a batch of random vectors on GPU for the generator input.
+    
+    Args:
+        batch_size: number of sequences
+        z_dim: latent dimension
+        T_mb: sequence lengths, shape (batch_size,)
+        max_seq_len: maximum sequence length in the batch
     
     Returns:
-        Z_mb: NumPy array of shape (batch_size, max_seq_len, z_dim)
+        Z_mb: tf.Tensor of shape (batch_size, max_seq_len, z_dim)
     """
-    Z_mb = np.zeros((batch_size, max_seq_len, z_dim), dtype=np.float32)
-    
-    for i in range(batch_size):
-        # Fill only up to the actual sequence length
-        Z_mb[i, :T_mb[i], :] = np.random.uniform(0., 1., (T_mb[i], z_dim))
-    
+    # Generate uniform random numbers for all positions
+    Z_mb = tf.random.uniform((batch_size, max_seq_len, z_dim), 0.0, 1.0, dtype=tf.float32)
+
+    # Create a mask to zero out positions beyond T_mb
+    mask = tf.sequence_mask(T_mb, maxlen=max_seq_len, dtype=tf.float32)  # shape (batch_size, max_seq_len)
+    mask = tf.expand_dims(mask, axis=-1)  # shape (batch_size, max_seq_len, 1)
+
+    Z_mb = Z_mb * mask  # zero out beyond sequence length
     return Z_mb
 
 
@@ -162,23 +186,56 @@ def random_generator(batch_size, z_dim, T_mb, max_seq_len):
 
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
-def batch_generator(data, time, batch_size):
+# def batch_generator(data, time, batch_size):
+#     """
+#     Mini-batch generator that returns 3D NumPy arrays.
+#     """
+#     no = len(data)
+#     idx = np.random.permutation(no)
+#     train_idx = idx[:batch_size]
+
+#     # Get the selected sequences
+#     X_mb = [data[i] for i in train_idx]
+#     T_mb = [time[i] for i in train_idx]
+
+#     # Pad sequences to max length in the batch
+#     max_len = max(T_mb)
+#     X_mb_padded = pad_sequences(
+#         X_mb, maxlen=max_len, dtype='float32', padding='post', truncating='post'
+#     )
+
+#     T_mb = np.array(T_mb, dtype=np.int32)
+#     return X_mb_padded, T_mb
+
+
+def make_tf_dataset(data, time, batch_size):
     """
-    Mini-batch generator that returns 3D NumPy arrays.
+    Returns a tf.data.Dataset that yields padded batches asynchronously.
     """
     no = len(data)
-    idx = np.random.permutation(no)
-    train_idx = idx[:batch_size]
 
-    # Get the selected sequences
-    X_mb = [data[i] for i in train_idx]
-    T_mb = [time[i] for i in train_idx]
+    def gen():
+        while True:
+            idx = np.random.permutation(no)
+            for i in range(0, no, batch_size):
+                batch_idx = idx[i:i+batch_size]
+                X_mb = [data[j] for j in batch_idx]
+                T_mb = [time[j] for j in batch_idx]
+                max_len = max(T_mb)
+                X_mb_padded = pad_sequences(
+                    X_mb, maxlen=max_len, dtype='float32', padding='post', truncating='post'
+                )
+                yield X_mb_padded, np.array(T_mb, dtype=np.int32)
 
-    # Pad sequences to max length in the batch
-    max_len = max(T_mb)
-    X_mb_padded = pad_sequences(
-        X_mb, maxlen=max_len, dtype='float32', padding='post', truncating='post'
+    output_shape = (None, None, data[0].shape[1])
+    dataset = tf.data.Dataset.from_generator(
+        gen,
+        output_signature=(
+            tf.TensorSpec(shape=output_shape, dtype=tf.float32),
+            tf.TensorSpec(shape=(None,), dtype=tf.int32)
+        )
     )
 
-    T_mb = np.array(T_mb, dtype=np.int32)
-    return X_mb_padded, T_mb
+    # Shuffle and prefetch for asynchronous GPU usage
+    dataset = dataset.prefetch(tf.data.AUTOTUNE)
+    return dataset
