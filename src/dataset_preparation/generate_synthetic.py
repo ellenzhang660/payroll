@@ -1,7 +1,7 @@
 import numpy as np
 
 # 1. TimeGAN model
-from TimeGAN.timegan_new import timegan
+from src.dataset_preparation.timegan import timegan
 # 2. Data loading
 from TimeGAN.data_loading import real_data_loading, sine_data_generation
 # 3. Metrics
@@ -12,6 +12,27 @@ import os
 ## Data loading
 data_name = 'stock'
 seq_len = 24
+
+"""
+Fineuner for lagllama on given dataset
+
+Args
+----
+    dataset
+        dataset to finetune lagllama on, of class BaseFinetuningDataset
+    save_dir
+        where to save the model checkpoints
+
+Returns
+-------
+    Fineunes a lagllama model on all available target columns in the original dataset, saves each to a checkpoint 
+    which can be loaded for evaluation
+
+To run, cd into root repo and run
+export PYTHONPATH=$(pwd)
+poetry run python src/dataset_preparation/generate_synthetic.py 
+"""
+
 
 if data_name in ['stock', 'energy']:
   ori_data = real_data_loading(data_name, seq_len)

@@ -102,44 +102,83 @@ def rnn_cell(module_name, hidden_dim):
   return rnn_cell
 
 
-def random_generator (batch_size, z_dim, T_mb, max_seq_len):
-  """Random vector generation.
+# def random_generator (batch_size, z_dim, T_mb, max_seq_len):
+#   """Random vector generation.
   
-  Args:
-    - batch_size: size of the random vector
-    - z_dim: dimension of random vector
-    - T_mb: time information for the random vector
-    - max_seq_len: maximum sequence length
+#   Args:
+#     - batch_size: size of the random vector
+#     - z_dim: dimension of random vector
+#     - T_mb: time information for the random vector
+#     - max_seq_len: maximum sequence length
     
-  Returns:
-    - Z_mb: generated random vector
-  """
-  Z_mb = list()
-  for i in range(batch_size):
-    temp = np.zeros([max_seq_len, z_dim])
-    temp_Z = np.random.uniform(0., 1, [T_mb[i], z_dim])
-    temp[:T_mb[i],:] = temp_Z
-    Z_mb.append(temp_Z)
-  return Z_mb
+#   Returns:
+#     - Z_mb: generated random vector
+#   """
+#   Z_mb = list()
+#   for i in range(batch_size):
+#     temp = np.zeros([max_seq_len, z_dim])
+#     temp_Z = np.random.uniform(0., 1, [T_mb[i], z_dim])
+#     temp[:T_mb[i],:] = temp_Z
+#     Z_mb.append(temp_Z)
+#   return Z_mb
 
+
+def random_generator(batch_size, z_dim, T_mb, max_seq_len):
+    """
+    Generate a batch of random vectors for the generator input.
+    
+    Returns:
+        Z_mb: NumPy array of shape (batch_size, max_seq_len, z_dim)
+    """
+    Z_mb = np.zeros((batch_size, max_seq_len, z_dim), dtype=np.float32)
+    
+    for i in range(batch_size):
+        # Fill only up to the actual sequence length
+        Z_mb[i, :T_mb[i], :] = np.random.uniform(0., 1., (T_mb[i], z_dim))
+    
+    return Z_mb
+
+
+# def batch_generator(data, time, batch_size):
+#   """Mini-batch generator.
+  
+#   Args:
+#     - data: time-series data
+#     - time: time information
+#     - batch_size: the number of samples in each batch
+    
+#   Returns:
+#     - X_mb: time-series data in each batch
+#     - T_mb: time information in each batch
+#   """
+#   no = len(data)
+#   idx = np.random.permutation(no)
+#   train_idx = idx[:batch_size]     
+            
+#   X_mb = list(data[i] for i in train_idx)
+#   T_mb = list(time[i] for i in train_idx)
+  
+#   return X_mb, T_mb
+
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 def batch_generator(data, time, batch_size):
-  """Mini-batch generator.
-  
-  Args:
-    - data: time-series data
-    - time: time information
-    - batch_size: the number of samples in each batch
-    
-  Returns:
-    - X_mb: time-series data in each batch
-    - T_mb: time information in each batch
-  """
-  no = len(data)
-  idx = np.random.permutation(no)
-  train_idx = idx[:batch_size]     
-            
-  X_mb = list(data[i] for i in train_idx)
-  T_mb = list(time[i] for i in train_idx)
-  
-  return X_mb, T_mb
+    """
+    Mini-batch generator that returns 3D NumPy arrays.
+    """
+    no = len(data)
+    idx = np.random.permutation(no)
+    train_idx = idx[:batch_size]
+
+    # Get the selected sequences
+    X_mb = [data[i] for i in train_idx]
+    T_mb = [time[i] for i in train_idx]
+
+    # Pad sequences to max length in the batch
+    max_len = max(T_mb)
+    X_mb_padded = pad_sequences(
+        X_mb, maxlen=max_len, dtype='float32', padding='post', truncating='post'
+    )
+
+    T_mb = np.array(T_mb, dtype=np.int32)
+    return X_mb_padded, T_mb
