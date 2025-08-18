@@ -209,11 +209,10 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 #     T_mb = np.array(T_mb, dtype=np.int32)
 #     return X_mb_padded, T_mb
-
-
 def make_tf_dataset(data, time, batch_size):
     """
-    Returns a tf.data.Dataset that yields padded batches asynchronously.
+    Returns a tf.data.Dataset that yields padded batches asynchronously,
+    skipping the last batch if it is smaller than batch_size.
     """
     no = len(data)
 
@@ -222,6 +221,11 @@ def make_tf_dataset(data, time, batch_size):
             idx = np.random.permutation(no)
             for i in range(0, no, batch_size):
                 batch_idx = idx[i:i+batch_size]
+                
+                # Skip batch if it's smaller than batch_size
+                if len(batch_idx) < batch_size:
+                    continue
+
                 X_mb = [data[j] for j in batch_idx]
                 T_mb = [time[j] for j in batch_idx]
                 max_len = max(T_mb)
