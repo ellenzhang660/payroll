@@ -213,6 +213,7 @@ lag-llama/
 lightning_logs/
 model_checkpoints/
 **/plan.txt
+src/database/synthetic_data
 
 # Ignore Python cache
 __pycache__/
