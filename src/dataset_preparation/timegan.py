@@ -188,7 +188,7 @@ def timegan(ori_data, parameters):
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     # Create a unique checkpoint directory
-    checkpoint_dir = f"model_checkpoints/timegan_{timestamp}"
+    checkpoint_dir = f"model_checkpoints/timegan/{timestamp}"
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     def save_timegan_models(epoch):
