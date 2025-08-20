@@ -212,7 +212,6 @@ lag-llama/
 *.json
 lightning_logs/
 **/plan.txt
-src/database/synthetic_data
 
 # Ignore Python cache
 __pycache__/
@@ -226,3 +225,7 @@ model_checkpoints/*
 # Except the timegan folder
 !model_checkpoints/timegan/
 !model_checkpoints/timegan/**  # Include all files inside
+
+src/database/*
+!src/database/synthetic_data/
+!src/database/synthetic_data/**  # Include all files inside
