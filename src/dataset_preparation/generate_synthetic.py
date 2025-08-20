@@ -68,7 +68,7 @@ parameters["batch_size"] = 128
 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 # Create a unique checkpoint directory
-checkpoint_dir = f"model_checkpoints/timegan/{timestamp}"
+checkpoint_dir = f"model_checkpoints/timegan/{data_name}/{timestamp}"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
 # Run TimeGAN
