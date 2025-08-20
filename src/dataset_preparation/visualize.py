@@ -2,7 +2,12 @@ import streamlit as st
 import pickle
 import numpy as np
 
-file_path = "/mnt/c/Users/elzhang/Documents/payroll/src/database/synthetic_data/payroll/generated_data.pkl"
+"""
+poetry run streamlit run src/dataset_preparation/visualize.py
+"""
+
+# file_path = "/mnt/c/Users/elzhang/Documents/payroll/src/database/synthetic_data/payroll/generated_data.pkl"
+file_path = "/mnt/c/Users/elzhang/Documents/payroll/model_checkpoints/timegan/sine/2025-08-20_12-42-57/original_data.pkl"
 
 with open(file_path, "rb") as f:
     generated_data = pickle.load(f)

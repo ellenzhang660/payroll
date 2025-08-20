@@ -81,15 +81,18 @@ timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 checkpoint_dir = f"model_checkpoints/timegan/{data_name}/{timestamp}"
 os.makedirs(checkpoint_dir, exist_ok=True)
 
+#save original daa
+with open(f"{checkpoint_dir}/original_data.pkl", "wb") as f:
+  pickle.dump(ori_data, f)
+
 # Run TimeGAN
 generated_data = timegan(ori_data, parameters, checkpoint_dir)
 print("Finish Synthetic Data Generation")
 
 metric_iteration = 5
+#save synthetic data
 with open(f"{checkpoint_dir}/generated_data.pkl", "wb") as f:
   pickle.dump(generated_data, f)
-with open(f"{checkpoint_dir}/original_data.pkl", "wb") as f:
-  pickle.dump(ori_data, f)
 
 # discriminative_score = list()
 # for _ in range(metric_iteration):
