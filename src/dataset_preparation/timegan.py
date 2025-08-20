@@ -93,53 +93,137 @@ def timegan(ori_data, parameters):
         return G_loss_S
 
         
+    # @tf.function
+    # def train_joint_hybrid(X_mb, Z_mb, itt, threshold=0.15):
+    #     # ---------- Pass 1: G + E with a persistent tape (reuse forward; free after) ----------
+    #     with tf.GradientTape(persistent=True) as tape:
+    #         tf.print(f'training generator and embedding')
+    #         # Embedder & recovery
+    #         H = embedder(X_mb, training=True)
+    #         X_tilde = recovery(H, training=True)
+
+    #         # Generator & supervisor
+    #         E_hat = generator(Z_mb, training=True)
+    #         H_hat = supervisor(E_hat, training=True)
+    #         H_hat_supervise = supervisor(H, training=True)
+    #         X_hat = recovery(H_hat, training=True)
+
+    #         # --- Generator losses (use D in inference mode here) ---
+    #         # (TF1 used raw logits with sigmoid CE; use from_logits=True)
+    #         Y_fake     = discriminator(H_hat, training=False)
+    #         Y_fake_e   = discriminator(E_hat, training=False)
+    #         G_loss_U   = bce(tf.ones_like(Y_fake),   Y_fake)
+    #         G_loss_U_e = bce(tf.ones_like(Y_fake_e), Y_fake_e)
+
+    #         # Supervised loss (next-step prediction in latent space)
+    #         G_loss_S = mse(H[:, 1:, :], H_hat_supervise[:, :-1, :])
+
+    #         # Moment matching (stop gradients through X_hat for this part to save memory/compute)
+    #         X_hat_ng  = tf.stop_gradient(X_hat)
+    #         G_loss_V1 = tf.reduce_mean(
+    #             tf.abs(
+    #                 tf.sqrt(tf.math.reduce_variance(X_hat_ng, axis=0) + 1e-6) -
+    #                 tf.sqrt(tf.math.reduce_variance(X_mb,     axis=0) + 1e-6)
+    #             )
+    #         )
+    #         G_loss_V2 = tf.reduce_mean(
+    #             tf.abs(tf.reduce_mean(X_hat_ng, axis=0) - tf.reduce_mean(X_mb, axis=0))
+    #         )
+    #         G_loss_V  = G_loss_V1 + G_loss_V2
+
+    #         # Final generator loss (mirrors the TF1 weights)
+    #         G_loss = G_loss_U + gamma * G_loss_U_e + 100.0 * tf.sqrt(G_loss_S) + 100.0 * G_loss_V
+
+    #         # Embedder loss (reconstruction + small supervision)
+    #         E_loss_T0 = mse(X_mb, X_tilde)
+    #         E_loss    = 10.0 * tf.sqrt(E_loss_T0) + 0.1 * G_loss_S
+
+    #     # Apply G+E grads
+    #     G_vars = generator.trainable_variables + supervisor.trainable_variables
+    #     E_vars = embedder.trainable_variables  + recovery.trainable_variables
+
+    #     G_grads = tape.gradient(G_loss, G_vars)
+    #     E_grads = tape.gradient(E_loss, E_vars)
+
+    #     G_optimizer.apply_gradients(zip(G_grads, G_vars))
+    #     E_optimizer.apply_gradients(zip(E_grads, E_vars))
+
+    #     # IMPORTANT: free the big graph ASAP
+    #     del tape
+
+    #     # ---------- Pass 2: Discriminator (less frequent, short-lived tape) ----------
+    #     # Match TF1 schedule: update D every other iteration, and only when loss > threshold
+    #     if itt % 2 == 0:
+    #         with tf.GradientTape() as tape_d:
+    #             tf.print(f'training discrim')
+    #             # Stop gradients so D doesn’t backprop into G/E during D update
+    #             H_sg     = tf.stop_gradient(H)
+    #             H_hat_sg = tf.stop_gradient(H_hat)
+    #             E_hat_sg = tf.stop_gradient(E_hat)
+
+    #             Y_real   = discriminator(H_sg,     training=True)
+    #             Y_fake   = discriminator(H_hat_sg, training=True)
+    #             Y_fake_e = discriminator(E_hat_sg, training=True)
+
+    #             D_loss_real   = bce(tf.ones_like(Y_real),   Y_real)
+    #             D_loss_fake   = bce(tf.zeros_like(Y_fake),  Y_fake)
+    #             D_loss_fake_e = bce(tf.zeros_like(Y_fake_e), Y_fake_e)
+    #             D_loss        = D_loss_real + D_loss_fake + gamma * D_loss_fake_e
+
+    #         if D_loss > threshold:
+    #             D_grads = tape_d.gradient(D_loss, discriminator.trainable_variables)
+    #             D_optimizer.apply_gradients(zip(D_grads, discriminator.trainable_variables))
+    #     else:
+    #         D_loss = tf.constant(0.0, dtype=tf.float32)
+
+    #     # Return individual components for logging
+    #     return D_loss, G_loss, G_loss_S, G_loss_V, tf.sqrt(E_loss_T0)
+
+    # ---------- Pass 1: Generator + Embedder ----------
     @tf.function
-    def train_joint_hybrid(X_mb, Z_mb, itt, threshold=0.15):
-        # ---------- Pass 1: G + E with a persistent tape (reuse forward; free after) ----------
+    def train_generator_embedder(X_mb, Z_mb, gamma=1.0):
+        tf.print("Training generator and embedder")
+
         with tf.GradientTape(persistent=True) as tape:
-            # Embedder & recovery
+            # Embedder & Recovery
             H = embedder(X_mb, training=True)
             X_tilde = recovery(H, training=True)
 
-            # Generator & supervisor
+            # Generator & Supervisor
             E_hat = generator(Z_mb, training=True)
             H_hat = supervisor(E_hat, training=True)
             H_hat_supervise = supervisor(H, training=True)
             X_hat = recovery(H_hat, training=True)
 
-            # --- Generator losses (use D in inference mode here) ---
-            # (TF1 used raw logits with sigmoid CE; use from_logits=True)
-            Y_fake     = discriminator(H_hat, training=False)
-            Y_fake_e   = discriminator(E_hat, training=False)
+            # Generator losses
+            Y_fake   = discriminator(H_hat, training=False)
+            Y_fake_e = discriminator(E_hat, training=False)
             G_loss_U   = bce(tf.ones_like(Y_fake),   Y_fake)
             G_loss_U_e = bce(tf.ones_like(Y_fake_e), Y_fake_e)
 
-            # Supervised loss (next-step prediction in latent space)
+            # Supervised loss
             G_loss_S = mse(H[:, 1:, :], H_hat_supervise[:, :-1, :])
 
-            # Moment matching (stop gradients through X_hat for this part to save memory/compute)
-            X_hat_ng  = tf.stop_gradient(X_hat)
+            # Moment matching
+            X_hat_ng = tf.stop_gradient(X_hat)
             G_loss_V1 = tf.reduce_mean(
-                tf.abs(
-                    tf.sqrt(tf.math.reduce_variance(X_hat_ng, axis=0) + 1e-6) -
-                    tf.sqrt(tf.math.reduce_variance(X_mb,     axis=0) + 1e-6)
-                )
+                tf.abs(tf.sqrt(tf.math.reduce_variance(X_hat_ng, axis=0)+1e-6) -
+                    tf.sqrt(tf.math.reduce_variance(X_mb, axis=0)+1e-6))
             )
             G_loss_V2 = tf.reduce_mean(
-                tf.abs(tf.reduce_mean(X_hat_ng, axis=0) - tf.reduce_mean(X_mb, axis=0))
+                tf.abs(tf.reduce_mean(X_hat_ng, axis=0) -
+                    tf.reduce_mean(X_mb, axis=0))
             )
-            G_loss_V  = G_loss_V1 + G_loss_V2
+            G_loss_V = G_loss_V1 + G_loss_V2
 
-            # Final generator loss (mirrors the TF1 weights)
-            G_loss = G_loss_U + gamma * G_loss_U_e + 100.0 * tf.sqrt(G_loss_S) + 100.0 * G_loss_V
-
-            # Embedder loss (reconstruction + small supervision)
+            # Final losses
+            G_loss = G_loss_U + gamma * G_loss_U_e + 100.0*tf.sqrt(G_loss_S) + 100.0*G_loss_V
             E_loss_T0 = mse(X_mb, X_tilde)
-            E_loss    = 10.0 * tf.sqrt(E_loss_T0) + 0.1 * G_loss_S
+            E_loss = 10.0*tf.sqrt(E_loss_T0) + 0.1*G_loss_S
 
-        # Apply G+E grads
+        # Apply gradients
         G_vars = generator.trainable_variables + supervisor.trainable_variables
-        E_vars = embedder.trainable_variables  + recovery.trainable_variables
+        E_vars = embedder.trainable_variables + recovery.trainable_variables
 
         G_grads = tape.gradient(G_loss, G_vars)
         E_grads = tape.gradient(E_loss, E_vars)
@@ -147,35 +231,47 @@ def timegan(ori_data, parameters):
         G_optimizer.apply_gradients(zip(G_grads, G_vars))
         E_optimizer.apply_gradients(zip(E_grads, E_vars))
 
-        # IMPORTANT: free the big graph ASAP
         del tape
+        return H, H_hat, E_hat, tf.sqrt(E_loss_T0), G_loss, G_loss_S, G_loss_V
 
-        # ---------- Pass 2: Discriminator (less frequent, short-lived tape) ----------
-        # Match TF1 schedule: update D every other iteration, and only when loss > threshold
+
+    # ---------- Pass 2: Discriminator ----------
+    @tf.function
+    def train_discriminator(H, H_hat, E_hat, threshold=0.15):
+        tf.print("Training discriminator")
+
+        H_sg = tf.stop_gradient(H)
+        H_hat_sg = tf.stop_gradient(H_hat)
+        E_hat_sg = tf.stop_gradient(E_hat)
+
+        with tf.GradientTape() as tape_d:
+            Y_real   = discriminator(H_sg, training=True)
+            Y_fake   = discriminator(H_hat_sg, training=True)
+            Y_fake_e = discriminator(E_hat_sg, training=True)
+
+            D_loss_real   = bce(tf.ones_like(Y_real),   Y_real)
+            D_loss_fake   = bce(tf.zeros_like(Y_fake),  Y_fake)
+            D_loss_fake_e = bce(tf.zeros_like(Y_fake_e), Y_fake_e)
+
+            D_loss = D_loss_real + D_loss_fake + gamma*D_loss_fake_e
+
+        if D_loss > threshold:
+            D_grads = tape_d.gradient(D_loss, discriminator.trainable_variables)
+            D_optimizer.apply_gradients(zip(D_grads, discriminator.trainable_variables))
+
+        return D_loss
+    
+    def train_joint_step(X_mb, Z_mb, itt, gamma=1.0, threshold=0.15):
+        H, H_hat, E_hat, E_loss, G_loss, G_loss_S, G_loss_V = train_generator_embedder(X_mb, Z_mb, gamma)
+
+        # Only update D every 2 iterations
         if itt % 2 == 0:
-            with tf.GradientTape() as tape_d:
-                # Stop gradients so D doesn’t backprop into G/E during D update
-                H_sg     = tf.stop_gradient(H)
-                H_hat_sg = tf.stop_gradient(H_hat)
-                E_hat_sg = tf.stop_gradient(E_hat)
-
-                Y_real   = discriminator(H_sg,     training=True)
-                Y_fake   = discriminator(H_hat_sg, training=True)
-                Y_fake_e = discriminator(E_hat_sg, training=True)
-
-                D_loss_real   = bce(tf.ones_like(Y_real),   Y_real)
-                D_loss_fake   = bce(tf.zeros_like(Y_fake),  Y_fake)
-                D_loss_fake_e = bce(tf.zeros_like(Y_fake_e), Y_fake_e)
-                D_loss        = D_loss_real + D_loss_fake + gamma * D_loss_fake_e
-
-            if D_loss > threshold:
-                D_grads = tape_d.gradient(D_loss, discriminator.trainable_variables)
-                D_optimizer.apply_gradients(zip(D_grads, discriminator.trainable_variables))
+            D_loss = train_discriminator(H, H_hat, E_hat, threshold)
         else:
             D_loss = tf.constant(0.0, dtype=tf.float32)
 
-        # Return individual components for logging
-        return D_loss, G_loss, G_loss_S, G_loss_V, tf.sqrt(E_loss_T0)
+        return D_loss, G_loss, G_loss_S, G_loss_V, E_loss
+
 
     # -----------------------------
     # Training loops
@@ -231,7 +327,7 @@ def timegan(ori_data, parameters):
         # Generator + Embedder update twice, discriminator update one
         # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
         Z_mb = random_generator_tf(batch_size, z_dim, T_mb, max_seq_len)
-        step_d_loss, step_g_loss_u, step_g_loss_s, step_g_loss_v, step_e_loss_t0 = train_joint_hybrid(X_mb, Z_mb, itt)
+        step_d_loss, step_g_loss_u, step_g_loss_s, step_g_loss_v, step_e_loss_t0 = train_joint_step(X_mb, Z_mb, itt)
 
         if itt % 1 == 0:
             print('step: '+ str(itt) + '/' + str(2*iterations) + 
