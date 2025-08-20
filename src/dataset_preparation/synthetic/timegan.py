@@ -226,7 +226,7 @@ def timegan(ori_data, parameters, checkpoint_dir):
         # print(f'T_mb shape {T_mb.shape}')
         Z_mb = random_generator_tf(batch_size, z_dim, T_mb, max_seq_len)
         step_g_loss_s = train_generator_supervised(Z_mb, X_mb)
-        if itt % 100 == 0:
+        if itt % 500 == 0:
             print(f"Supervised step {itt}/{iterations}, G_loss_S: {step_g_loss_s.numpy():.4f}")
             save_timegan_models(itt)
     print("Finish Generator Supervised Training\n")
@@ -257,7 +257,7 @@ def timegan(ori_data, parameters, checkpoint_dir):
                 + ", e_loss_t0: "
                 + str(np.round(np.sqrt(step_e_loss_t0), 4))
             )
-        if itt % 10 == 0:
+        if itt % 500 == 0:
             save_timegan_models(itt)
 
     # -----------------------------
