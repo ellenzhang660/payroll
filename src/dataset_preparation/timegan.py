@@ -40,13 +40,13 @@ def timegan(ori_data, parameters, checkpoint_dir):
     max_seq_len = seq_len
 
     # Min-Max normalization
-    # def MinMaxScaler(data):
-    #     min_val = np.min(np.min(data, axis=0), axis=0)
-    #     max_val = np.max(np.max(data, axis=0), axis=0)
-    #     norm_data = (data - min_val) / (max_val - min_val + 1e-7)
-    #     return norm_data, min_val, max_val
+    def MinMaxScaler(data):
+        min_val = np.min(np.min(data, axis=0), axis=0)
+        max_val = np.max(np.max(data, axis=0), axis=0)
+        norm_data = (data - min_val) / (max_val - min_val + 1e-7)
+        return norm_data, min_val, max_val
 
-    # ori_data, min_val, max_val = MinMaxScaler(ori_data)
+    ori_data, min_val, max_val = MinMaxScaler(ori_data)
 
     # Network parameters
     hidden_dim = parameters["hidden_dim"]
@@ -265,6 +265,6 @@ def timegan(ori_data, parameters, checkpoint_dir):
     Z_mb = random_generator_tf(no, z_dim, ori_time, max_seq_len)
     H_hat = supervisor(generator(Z_mb, training=False), training=False)
     X_hat = recovery(H_hat, training=False).numpy()
-    generated_data = [(X_hat[i, : ori_time[i], :]) for i in range(no)]
+    generated_data = [(X_hat[i, : ori_time[i], :] * max_val + min_val) for i in range(no)]
 
     return generated_data

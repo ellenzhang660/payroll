@@ -15,7 +15,7 @@ from TimeGAN.data_loading import real_data_loading, sine_data_generation
 # from TimeGAN.metrics.discriminative_metrics import discriminative_score_metrics
 # from TimeGAN.metrics.predictive_metrics import predictive_score_metrics
 from TimeGAN.metrics.visualization_metrics import visualization
-
+import argparse
 
 """
 Fineuner for lagllama on given dataset
@@ -34,12 +34,22 @@ Returns
 
 To run, cd into root repo and run
 export PYTHONPATH=$(pwd)
-poetry run python src/dataset_preparation/generate_synthetic.py 
+poetry run python src/dataset_preparation/generate_synthetic.py --data_name sine --seq_len 24
 """
 
-## Data loading
-data_name = "payroll"
-seq_len = 24
+# Create the parser
+parser = argparse.ArgumentParser(description="Load data parameters")
+
+# Add arguments
+parser.add_argument("--data_name", type=str, default="stock", help="Name of the dataset")
+parser.add_argument("--seq_len", type=int, default=24, help="Sequence length")
+
+# Parse arguments
+args = parser.parse_args()
+
+# Access them
+data_name = args.data_name
+seq_len = args.seq_len
 
 if data_name in ["payroll"]:
     ori_data = dataset_to_numpy(PayrollDataset(), seq_len)
@@ -60,8 +70,8 @@ parameters = dict()
 parameters["module"] = "gru"
 parameters["hidden_dim"] = 24
 parameters["num_layer"] = 3
-# parameters['iterations'] = 10000
-parameters["iterations"] = 2000
+parameters['iterations'] = 10000
+# parameters["iterations"] = 2000
 parameters["batch_size"] = 128
 
 # Generate timestamp, e.g., "2025-08-18_20-45-30"
