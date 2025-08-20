@@ -163,5 +163,5 @@ def real_data_loading (data_name, seq_len):
     data.append(temp_data[idx[i]])
     
     # data shape list len (num_sequences) shape (sequence len, num_variables)
-  print(f'data array is {data.shape}')
+  print(f'data array is {len(data)} by {data[0].shape}')
   return data

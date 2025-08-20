@@ -20,7 +20,7 @@ class GenerateFakeData(ABC):
 
     #################### Observer operations ####################
     @abstractmethod
-    def generate_fake_data(self, time_series: pd.Series) -> dict[str, list[pd.Series]]:
+    def generate_fake_data(self) -> dict[str, list[pd.Series]]:
         """
         Given a timeseries long pandas series, generates various augmentations/synthetic
         Returns
