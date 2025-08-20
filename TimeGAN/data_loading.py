@@ -98,7 +98,7 @@ def real_data_loading (data_name, seq_len):
   ori_data = ori_data[::-1]
   # Normalize the data
   ori_data = MinMaxScaler(ori_data)
-    
+    # time_series, num_varialbes
   # Preprocess the dataset
   temp_data = []    
   # Cut data by sequence length
@@ -112,4 +112,5 @@ def real_data_loading (data_name, seq_len):
   for i in range(len(temp_data)):
     data.append(temp_data[idx[i]])
     
+    # data shape list len (num_sequences) shape (sequence len, num_variables)
   return data

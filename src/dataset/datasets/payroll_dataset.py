@@ -10,7 +10,7 @@ class PayrollDataset(TimeSeriesData):
     Absract class for generic time series dataset
     """
 
-    home = Path(__file__).parent
+    home = Path(__file__).parents[2]
     payroll_url = f"{home}/database/Lohnkonto2022-2025_english.csv"
 
     #################### Creator operation ####################
@@ -80,6 +80,7 @@ class PayrollDataset(TimeSeriesData):
         variates: dict[str, pd.Series] = {}
         for variable in self.what_variates():
             df_person_variable = df_person.loc[df_person["Description"] == variable].copy()
-            variates[variable] = self._reformat(df_person=df_person_variable)
+            if not df_person_variable.empty:
+                variates[variable] = self._reformat(df_person=df_person_variable)
         return variates
         

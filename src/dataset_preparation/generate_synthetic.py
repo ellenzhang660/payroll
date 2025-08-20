@@ -9,9 +9,8 @@ from TimeGAN.data_loading import real_data_loading, sine_data_generation
 # from TimeGAN.metrics.predictive_metrics import predictive_score_metrics
 from TimeGAN.metrics.visualization_metrics import visualization
 import os
-## Data loading
-data_name = 'stock'
-seq_len = 24
+from src.dataset.datasets.payroll_dataset import PayrollDataset
+from src.dataset_preparation.data_convert import dataset_to_numpy
 
 """
 Fineuner for lagllama on given dataset
@@ -33,8 +32,13 @@ export PYTHONPATH=$(pwd)
 poetry run python src/dataset_preparation/generate_synthetic.py 
 """
 
+## Data loading
+data_name = 'payroll'
+seq_len = 24
 
-if data_name in ['stock', 'energy']:
+if data_name in ['payroll']:
+   ori_data = dataset_to_numpy(PayrollDataset(), seq_len)
+elif data_name in ['stock', 'energy']:
   ori_data = real_data_loading(data_name, seq_len)
 elif data_name == 'sine':
   # Set number of samples and its dimensions
