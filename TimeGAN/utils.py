@@ -23,6 +23,7 @@ utils.py
 ## Necessary Packages
 import numpy as np
 import tensorflow as tf
+import sys
 
 
 def train_test_divide (data_x, data_x_hat, data_t, data_t_hat, train_rate = 0.8):
@@ -213,6 +214,8 @@ def make_tf_dataset(data, time, batch_size):
     """
     Returns a tf.data.Dataset that yields padded batches asynchronously,
     skipping the last batch if it is smaller than batch_size.
+    X_mb: Batch, seq _len, num_features
+    T_mb: bach 
     """
     no = len(data)
 
@@ -246,3 +249,13 @@ def make_tf_dataset(data, time, batch_size):
     # Shuffle and prefetch for asynchronous GPU usage
     dataset = dataset.prefetch(tf.data.AUTOTUNE)
     return dataset
+
+
+# make_payroll_dataset(batch_size, dataset):
+# """
+# dataset = Daaset class 
+# get item returns a dictionary of series 
+# iterate across all single series + all item combos
+# X_mb shape batch, seq len, # features
+# T_mb batch, 
+# """
