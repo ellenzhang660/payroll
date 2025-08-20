@@ -1,5 +1,6 @@
-from src.dataset.datasets.payroll_dataset import PayrollDataset
 from src.dataset.datasets.generic_dataset import GenericDataset
+from src.dataset.datasets.payroll_dataset import PayrollDataset
+
 
 def test_payroll():
     dataset = PayrollDataset()
@@ -8,6 +9,7 @@ def test_payroll():
         dataset[i]
     # assert str(dataset) == "hi"
     # assert repr(dataset) == "MyString('hi')"
+
 
 def test_generic():
     dataset = GenericDataset()

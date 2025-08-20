@@ -48,7 +48,7 @@ class GenericDataset(TimeSeriesData):
         # Convert to megabytes
         memory_mb = memory_bytes / (1024**2)
         return memory_mb
-    
+
     def __getitem__(self, idx: int) -> dict[str, pd.Series]:
         id = self.unique_samples[idx]
         df_person = self.df[self.df[self.id_var] == id].copy()  # type: ignore

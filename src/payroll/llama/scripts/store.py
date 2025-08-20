@@ -1,5 +1,6 @@
 from typing import Tuple
 
+import pandas as pd
 import torch
 from tqdm import tqdm
 
@@ -7,7 +8,7 @@ from src.payroll.llama.evaluate import init_dataset
 from src.payroll.llama.evaluate.base_dataset import BaseTestDataset
 from src.payroll.llama.evaluate.lagllama_evaluator import LagLlamaEvaluator
 from src.payroll.llama.scripts.evaluate import find_ckpt_files
-import pandas as pd
+
 
 device = torch.device("cpu")
 
@@ -55,27 +56,27 @@ all_rows = []
 
 for target_column in llama_models:
     evaluator, dataset = llama_models[target_column]
-    
+
     for i in tqdm(range(len(dataset)), desc=f"Processing {target_column}"):
         try:
             forecast = evaluator.get_forecast_for_unseen(dataset[i])
             predicted_forecast = forecast[0].samples[0]  # array of length N
             item_id = forecast[0].item_id
             start_date = forecast[0].start_date  # Period('2025-01', 'M')
-            
+
             # Convert start_date to pandas Period if not already
             if not isinstance(start_date, pd.Period):
-                start_date = pd.Period(start_date, freq='M')
-            
+                start_date = pd.Period(start_date, freq="M")
+
             # Generate column names for each time step
-            time_columns = [(start_date + j).strftime('%Y-%m') for j in range(len(predicted_forecast))]
-            
+            time_columns = [(start_date + j).strftime("%Y-%m") for j in range(len(predicted_forecast))]
+
             # Create row dictionary
-            row = {'id': item_id, 'target_column': target_column}
+            row = {"id": item_id, "target_column": target_column}
             row.update({col: val for col, val in zip(time_columns, predicted_forecast)})
-            
+
             all_rows.append(row)
-        
+
         except Exception as e:
             print(f"Error {e} for {target_column}, index {i}")
 
@@ -83,4 +84,4 @@ for target_column in llama_models:
 df = pd.DataFrame(all_rows)
 
 # Save to CSV
-df.to_csv('forecast_results.csv', index=False)
+df.to_csv("forecast_results.csv", index=False)
