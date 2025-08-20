@@ -87,7 +87,9 @@ print("Finish Synthetic Data Generation")
 
 metric_iteration = 5
 with open(f"{checkpoint_dir}/generated_data.pkl", "wb") as f:
-    pickle.dump(generated_data, f)
+  pickle.dump(generated_data, f)
+with open(f"{checkpoint_dir}/original_data.pkl", "wb") as f:
+  pickle.dump(ori_data, f)
 
 # discriminative_score = list()
 # for _ in range(metric_iteration):
