@@ -159,9 +159,9 @@ def random_generator_tf(batch_size, z_dim, T_mb, max_seq_len):
     mask = tf.sequence_mask(T_mb, maxlen=max_seq_len, dtype=tf.float32)  # shape (batch_size, max_seq_len)
     mask = tf.expand_dims(mask, axis=-1)  # shape (batch_size, max_seq_len, 1)
 
-    print(f'Tmb {T_mb.shape}')
-    print(f'ZMb {Z_mb.shape}')
-    print(f'mask {mask.shape}')
+    # print(f'Tmb {T_mb.shape}')
+    # print(f'ZMb {Z_mb.shape}')
+    # print(f'mask {mask.shape}')
     Z_mb = Z_mb * mask  # zero out beyond sequence length
     return Z_mb
 

@@ -204,9 +204,9 @@ def timegan(ori_data, parameters):
     for itt in range(iterations):
         X_mb, T_mb = next(iterator)
         # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
-        print(f'T_mb.shape {T_mb.shape}')
+        # print(f'T_mb.shape {T_mb.shape}')
         step_e_loss = train_embedder(X_mb)
-        if itt % 1000 == 0:
+        if itt % 100 == 0:
             print(f"Embedding step {itt}/{iterations}, E_loss: {step_e_loss.numpy():.4f}")
             save_timegan_models(itt)
     print("Finish Embedding Training\n")
@@ -216,10 +216,10 @@ def timegan(ori_data, parameters):
     for itt in range(iterations):
         X_mb, T_mb = next(iterator)
         # X_mb, T_mb = batch_generator(ori_data, ori_time, batch_size)
-        print(f'T_mb shape {T_mb.shape}')
+        # print(f'T_mb shape {T_mb.shape}')
         Z_mb = random_generator_tf(batch_size, z_dim, T_mb, max_seq_len)
         step_g_loss_s = train_generator_supervised(Z_mb, X_mb)
-        if itt % 1000 == 0:
+        if itt % 100 == 0:
             print(f"Supervised step {itt}/{iterations}, G_loss_S: {step_g_loss_s.numpy():.4f}")
             save_timegan_models(itt)
     print("Finish Generator Supervised Training\n")
