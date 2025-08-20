@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-import pandas as pd
-import matplotlib.pyplot as plt
+
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
+import pandas as pd
 
 
 class TimeSeriesData(ABC):
@@ -44,7 +45,7 @@ class TimeSeriesData(ABC):
         Reurns a dictionary mapping all variates for person idx to their time sereis data.
         If variate key does not exist for particular idx, value is empty pandas series
         Pandas series long format
-            index = time stamp 
+            index = time stamp
             column = value
         """
 
@@ -66,11 +67,11 @@ class TimeSeriesData(ABC):
 
 def visualize(series: pd.Series):
     # ✅ Create figure/axes explicitly
-    fig, ax = plt.subplots(figsize=(14, 6)) 
+    fig, ax = plt.subplots(figsize=(14, 6))
 
     ax.plot(series.index, series.values, label="Target", linewidth=2)
 
-    ax.set_xlabel("Time") #type: ignore
+    ax.set_xlabel("Time")  # type: ignore
     ax.set_ylabel("Value")
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %Y"))
     plt.xticks(rotation=45)

@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
+
 import pandas as pd
+
 from src.dataset.base import TimeSeriesData
+
 
 class GenerateFakeData(ABC):
     """
     Absract class for generating fake data
     """
+
     #################### Creator operation ####################
     def __init__(self, dataset: TimeSeriesData):
         """

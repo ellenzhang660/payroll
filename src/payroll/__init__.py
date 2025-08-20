@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from enum import Enum
 
+
 class Architecture(str, Enum):
     LLM = "LLM"
     FOUNDATION = "Foundation"
+
 
 @dataclass
 class ModelInfo:
@@ -17,7 +19,7 @@ class ModelInfo:
     @property
     def type(self) -> str:
         return "multivariate" if self.is_multivariate else "univariate"
-    
+
     def __str__(self) -> str:
         return (
             f"ModelInfo(\n"
@@ -31,7 +33,21 @@ class ModelInfo:
         )
 
 
-models : list[ModelInfo]= [
-ModelInfo(name="lag-llama", is_multivariate=False, context_length=-1, supports_zero_shot=True, supports_finetuning=True, architecture=Architecture.FOUNDATION),
-ModelInfo(name="TimeLLM", is_multivariate=False, context_length=-1, supports_zero_shot=True, supports_finetuning=True, architecture=Architecture.LLM)
+models: list[ModelInfo] = [
+    ModelInfo(
+        name="lag-llama",
+        is_multivariate=False,
+        context_length=-1,
+        supports_zero_shot=True,
+        supports_finetuning=True,
+        architecture=Architecture.FOUNDATION,
+    ),
+    ModelInfo(
+        name="TimeLLM",
+        is_multivariate=False,
+        context_length=-1,
+        supports_zero_shot=True,
+        supports_finetuning=True,
+        architecture=Architecture.LLM,
+    ),
 ]

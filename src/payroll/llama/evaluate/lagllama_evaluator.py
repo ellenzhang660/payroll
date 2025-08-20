@@ -15,7 +15,6 @@ from lag_llama.gluon.estimator import LagLlamaEstimator
 from pandas import Series
 from torch.utils.data import Dataset
 from tqdm import tqdm
-from gluonts.model.predictor import Predictor
 
 
 class LagLlamaEvaluator:
