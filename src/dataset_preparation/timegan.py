@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 
 from TimeGAN.utils import make_tf_dataset, random_generator_tf  # batch_generator
-
+import os
 
 def rnn_cell(module_name: Literal["gru", "lstm", "lstmLN"], hidden_dim: int):
     """Return a Keras RNN cell."""
