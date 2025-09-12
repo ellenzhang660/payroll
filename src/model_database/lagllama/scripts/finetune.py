@@ -41,7 +41,7 @@ if __name__ == "__main__":
     datasets_dict = init_dataset(dataset=args.dataset)
     device = torch.device("cpu")
     num_samples = 20
-    batch_size = 64
+    batch_size = 32
     for target_column, dataset in datasets_dict.items():
         try:
             finetune_llama = FinetuneLagLlama(

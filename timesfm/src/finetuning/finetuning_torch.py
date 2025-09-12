@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, Dataset
 from timesfm.pytorch_patched_decoder import create_quantiles
 
 import wandb
+from tqdm import tqdm
 
 
 class MetricsLogger(ABC):
@@ -177,16 +178,12 @@ class TimesFMFinetuner:
       rank: int = 0,
       loss_fn: Optional[Callable] = None,
       logger: Optional[logging.Logger] = None,
-      save_dir: str
+      save_dir: str = "model_checkpoints/TimesFM"
   ):
     self.model = model
     self.config = config
     self.rank = rank
     self.logger = logger or logging.getLogger(__name__)
-    logging.basicConfig(
-        level=logging.DEBUG,  # or INFO, WARNING, etc.
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-    )
     self.save_dir = save_dir
     os.makedirs(save_dir, exist_ok=True)
     self.device = torch.device(
@@ -294,12 +291,11 @@ class TimesFMFinetuner:
         Returns:
             Average training loss for the epoch.
         """
-    from tqdm import tqdm
     self.model.train()
     total_loss = 0.0
     num_batches = len(train_loader)
 
-    for batch in tqdm(train_loader):
+    for batch in tqdm(train_loader, desc='Train'):
       loss, _ = self._process_batch(batch)
 
       optimizer.zero_grad()
@@ -331,7 +327,7 @@ class TimesFMFinetuner:
     num_batches = len(val_loader)
 
     with torch.no_grad():
-      for batch in val_loader:
+      for batch in tqdm(val_loader, desc='Val'):
         loss, _ = self._process_batch(batch)
         total_loss += loss.item()
 

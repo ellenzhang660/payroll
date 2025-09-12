@@ -52,10 +52,9 @@ print(data_name + " dataset is ready.")
 parameters = dict()
 
 parameters["module"] = "gru"
-parameters["hidden_dim"] = 48
+parameters["hidden_dim"] = 24
 parameters["num_layer"] = 3
 parameters["iterations"] = 10000
-# parameters["iterations"] = 2000
 parameters["batch_size"] = 128
 
 
