@@ -29,9 +29,11 @@ class GenerateFakeData(ABC):
         """
 
     #################### Representation ####################
+    @abstractmethod
     def __str__(self) -> str:
         """Pretty-print all observer information about the dataset."""
-        return ""
+        pass
 
+    @abstractmethod
     def __repr__(self) -> str:
-        return f"GenerateFakeData({self.base})"
+        pass

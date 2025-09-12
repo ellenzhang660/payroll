@@ -421,6 +421,28 @@ docs = ["ipython", "matplotlib", "numpydoc", "sphinx"]
 tests = ["pytest", "pytest-cov", "pytest-xdist"]
 
 [[package]]
+name = "einshape"
+version = "1.0"
+description = "DSL-based reshaping library for JAX and other frameworks"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "einshape-1.0-py3-none-any.whl", hash = "sha256:42da4c2dea3a27f87ee45a7cee5072a636b97cb184bb07bf5d6412ba0ff7b965"},
+    {file = "einshape-1.0.tar.gz", hash = "sha256:53538d75dd099f4ead4a4f786fafdcb0b729bb587e0b3afeca25ceef18c9ac14"},
+]
+
+[package.dependencies]
+absl-py = "*"
+numpy = "*"
+
+[package.extras]
+jax = ["jax (>=0.1.71)"]
+jaxlib = ["jaxlib (>=0.1.49)"]
+tensorflow = ["tensorflow (>=1.8.0)"]
+tensorflow-with-gpu = ["tensorflow-gpu (>=1.8.0)"]
+
+[[package]]
 name = "filelock"
 version = "3.18.0"
 description = "A platform independent file lock."
@@ -788,6 +810,7 @@ files = [
 filelock = "*"
 fsspec = ">=2023.5.0"
 hf-xet = {version = ">=1.1.3,<2.0.0", markers = "platform_machine == \"x86_64\" or platform_machine == \"amd64\" or platform_machine == \"arm64\" or platform_machine == \"aarch64\""}
+InquirerPy = {version = "0.3.4", optional = true, markers = "extra == \"cli\""}
 packaging = ">=20.9"
 pyyaml = ">=5.1"
 requests = "*"
@@ -839,6 +862,25 @@ files = [
 ]
 
 [[package]]
+name = "inquirerpy"
+version = "0.3.4"
+description = "Python port of Inquirer.js (A collection of common interactive command-line user interfaces)"
+optional = false
+python-versions = ">=3.7,<4.0"
+groups = ["main"]
+files = [
+    {file = "InquirerPy-0.3.4-py3-none-any.whl", hash = "sha256:c65fdfbac1fa00e3ee4fb10679f4d3ed7a012abf4833910e63c295827fe2a7d4"},
+    {file = "InquirerPy-0.3.4.tar.gz", hash = "sha256:89d2ada0111f337483cb41ae31073108b2ec1e618a49d7110b0d7ade89fc197e"},
+]
+
+[package.dependencies]
+pfzy = ">=0.3.1,<0.4.0"
+prompt-toolkit = ">=3.0.1,<4.0.0"
+
+[package.extras]
+docs = ["Sphinx (>=4.1.2,<5.0.0)", "furo (>=2021.8.17-beta.43,<2022.0.0)", "myst-parser (>=0.15.1,<0.16.0)", "sphinx-autobuild (>=2021.3.14,<2022.0.0)", "sphinx-copybutton (>=0.4.0,<0.5.0)"]
+
+[[package]]
 name = "isort"
 version = "6.0.1"
 description = "A Python utility / library to sort Python imports."
@@ -853,6 +895,75 @@ files = [
 [package.extras]
 colors = ["colorama"]
 plugins = ["setuptools"]
+
+[[package]]
+name = "jax"
+version = "0.7.1"
+description = "Differentiate, compile, and transform Numpy code."
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+files = [
+    {file = "jax-0.7.1-py3-none-any.whl", hash = "sha256:056e576e0e58465506125699f48111ac8891cce4c9ebf034704c42b219dfd4a6"},
+    {file = "jax-0.7.1.tar.gz", hash = "sha256:118f56338c503361d2791f069d24339d8d44a8db442ed851d2e591222fb7a56d"},
+]
+
+[package.dependencies]
+jaxlib = "0.7.1"
+ml_dtypes = ">=0.5.0"
+numpy = ">=1.26"
+opt_einsum = "*"
+scipy = ">=1.12"
+
+[package.extras]
+ci = ["jaxlib (==0.7.0)"]
+cuda = ["jax-cuda12-plugin[with-cuda] (==0.7.1)", "jaxlib (==0.7.1)"]
+cuda12 = ["jax-cuda12-plugin[with-cuda] (==0.7.1)", "jaxlib (==0.7.1)"]
+cuda12-local = ["jax-cuda12-plugin (==0.7.1)", "jaxlib (==0.7.1)"]
+cuda13 = ["jax-cuda13-plugin[with-cuda] (==0.7.1)", "jaxlib (==0.7.1)"]
+cuda13-local = ["jax-cuda13-plugin (==0.7.1)", "jaxlib (==0.7.1)"]
+k8s = ["kubernetes"]
+minimum-jaxlib = ["jaxlib (==0.7.1)"]
+rocm = ["jax-rocm60-plugin (==0.7.1)", "jaxlib (==0.7.1)"]
+tpu = ["jaxlib (==0.7.1)", "libtpu (==0.0.20.*)", "requests"]
+xprof = ["xprof"]
+
+[[package]]
+name = "jaxlib"
+version = "0.7.1"
+description = "XLA library for JAX"
+optional = false
+python-versions = ">=3.11"
+groups = ["main"]
+files = [
+    {file = "jaxlib-0.7.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:3f32c3e4c167b7327c342e82d3df84079714ea0b43718be871d039999670b3c9"},
+    {file = "jaxlib-0.7.1-cp311-cp311-manylinux2014_aarch64.whl", hash = "sha256:9fb189c3b39470c4394ffcb18b71e47cffc5bf85e8fcb1e33692686b0c3e04dd"},
+    {file = "jaxlib-0.7.1-cp311-cp311-manylinux_2_27_x86_64.whl", hash = "sha256:eaf5f68f53bf4dcb93b6512538547667625588e4f3ccaeef048788fd18d8c0d5"},
+    {file = "jaxlib-0.7.1-cp311-cp311-win_amd64.whl", hash = "sha256:ab4510fbaeafac6c794ab335f23e71200d824c48f6a0ab20553db8deab8805c5"},
+    {file = "jaxlib-0.7.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:127c07c727703e5d59f84f655169bec849f4422e52f8546349cecc30a8a13e1d"},
+    {file = "jaxlib-0.7.1-cp312-cp312-manylinux2014_aarch64.whl", hash = "sha256:f0f1f52956b8c2518ab000a4d3d8c21be777e1d47f926ba03640e391061a41ee"},
+    {file = "jaxlib-0.7.1-cp312-cp312-manylinux_2_27_x86_64.whl", hash = "sha256:74abd3135797f82440dd3711a35cba16c430d1bba65474b85bb70e41733a52e9"},
+    {file = "jaxlib-0.7.1-cp312-cp312-win_amd64.whl", hash = "sha256:c4023863b14f280516f24ecb7539b4300a3236ea81ed69ad82595beceed1ba1f"},
+    {file = "jaxlib-0.7.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:2a27379e5ed29765980ef32d4d77f57dd0e1dd965803ac674554044ac23cd3ec"},
+    {file = "jaxlib-0.7.1-cp313-cp313-manylinux2014_aarch64.whl", hash = "sha256:ce6a1ba6019764870c27507aca18e526998ad3ad4bea2dd61e19d0499c3b8b04"},
+    {file = "jaxlib-0.7.1-cp313-cp313-manylinux_2_27_x86_64.whl", hash = "sha256:b350f519a86eff5a4b1ee014c7faa36585f47f3d63787d1f3e9bdffe9cc41a66"},
+    {file = "jaxlib-0.7.1-cp313-cp313-win_amd64.whl", hash = "sha256:407347dd5846248ee40db33da26f2b18c7d135249ff06c0271a2e33efd8fb3fe"},
+    {file = "jaxlib-0.7.1-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:66b33cc15040af5b8d16d3006811eb31372e9f4cfe09393d6cea91795366bfa4"},
+    {file = "jaxlib-0.7.1-cp313-cp313t-manylinux2014_aarch64.whl", hash = "sha256:58558fa29fd7d6342c066f837e58fcba335182837a959affc128660c089702de"},
+    {file = "jaxlib-0.7.1-cp313-cp313t-manylinux_2_27_x86_64.whl", hash = "sha256:944f7555960d69f1d1c435fff0a76e4edd6a878fe47fe1781f7a0d63b61072e5"},
+    {file = "jaxlib-0.7.1-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:72dd9c3e95457a5a54f00e47ec14863b5e61540b944c0df13bf10c259b4d5d73"},
+    {file = "jaxlib-0.7.1-cp314-cp314-manylinux2014_aarch64.whl", hash = "sha256:023df41212ae4fda869338370f9532bfcd98ccfaee909bb95ea540d6053df547"},
+    {file = "jaxlib-0.7.1-cp314-cp314-manylinux_2_27_x86_64.whl", hash = "sha256:d52817a42c130d0c330f48edcb3a3e455dc984b6ce53f3182c37aa0fe960109b"},
+    {file = "jaxlib-0.7.1-cp314-cp314-win_amd64.whl", hash = "sha256:38ac46ec17c0a86b428590d04559629357fc6dc3a3c76569f022b982c36fc1af"},
+    {file = "jaxlib-0.7.1-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:6057a602632bd3299d6c7ffbbb3f1ef2c7573ccbed9eb06cc92042b96e2ca5d4"},
+    {file = "jaxlib-0.7.1-cp314-cp314t-manylinux2014_aarch64.whl", hash = "sha256:9766817cfa51743a48fac78c087605c30bf1a91caf11371ca8c41261e6f3a0c8"},
+    {file = "jaxlib-0.7.1-cp314-cp314t-manylinux_2_27_x86_64.whl", hash = "sha256:1ea54e6182d85b82496fbc58bbe51042bea3ee3e1e0d444b3cff446c245bebd5"},
+]
+
+[package.dependencies]
+ml_dtypes = ">=0.5.0"
+numpy = ">=1.26"
+scipy = ">=1.12"
 
 [[package]]
 name = "jinja2"
@@ -1781,6 +1892,21 @@ files = [
 ]
 
 [[package]]
+name = "pfzy"
+version = "0.3.4"
+description = "Python port of the fzy fuzzy string matching algorithm"
+optional = false
+python-versions = ">=3.7,<4.0"
+groups = ["main"]
+files = [
+    {file = "pfzy-0.3.4-py3-none-any.whl", hash = "sha256:5f50d5b2b3207fa72e7ec0ef08372ef652685470974a107d0d4999fc5a903a96"},
+    {file = "pfzy-0.3.4.tar.gz", hash = "sha256:717ea765dd10b63618e7298b2d98efd819e0b30cd5905c9707223dceeb94b3f1"},
+]
+
+[package.extras]
+docs = ["Sphinx (>=4.1.2,<5.0.0)", "furo (>=2021.8.17-beta.43,<2022.0.0)", "myst-parser (>=0.15.1,<0.16.0)", "sphinx-autobuild (>=2021.3.14,<2022.0.0)", "sphinx-copybutton (>=0.4.0,<0.5.0)"]
+
+[[package]]
 name = "pillow"
 version = "11.3.0"
 description = "Python Imaging Library (Fork)"
@@ -1961,6 +2087,21 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["coverage", "pytest", "pytest-benchmark"]
+
+[[package]]
+name = "prompt-toolkit"
+version = "3.0.52"
+description = "Library for building powerful interactive command lines in Python"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "prompt_toolkit-3.0.52-py3-none-any.whl", hash = "sha256:9aac639a3bbd33284347de5ad8d68ecc044b91a762dc39b7c21095fcd6a19955"},
+    {file = "prompt_toolkit-3.0.52.tar.gz", hash = "sha256:28cde192929c8e7321de85de1ddbe736f1375148b02f2e17edd840042b1be855"},
+]
+
+[package.dependencies]
+wcwidth = "*"
 
 [[package]]
 name = "protobuf"
@@ -2585,6 +2726,44 @@ files = [
 ]
 
 [[package]]
+name = "safetensors"
+version = "0.5.3"
+description = ""
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "safetensors-0.5.3-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:bd20eb133db8ed15b40110b7c00c6df51655a2998132193de2f75f72d99c7073"},
+    {file = "safetensors-0.5.3-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:21d01c14ff6c415c485616b8b0bf961c46b3b343ca59110d38d744e577f9cce7"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:11bce6164887cd491ca75c2326a113ba934be596e22b28b1742ce27b1d076467"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:4a243be3590bc3301c821da7a18d87224ef35cbd3e5f5727e4e0728b8172411e"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:8bd84b12b1670a6f8e50f01e28156422a2bc07fb16fc4e98bded13039d688a0d"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:391ac8cab7c829452175f871fcaf414aa1e292b5448bd02620f675a7f3e7abb9"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cead1fa41fc54b1e61089fa57452e8834f798cb1dc7a09ba3524f1eb08e0317a"},
+    {file = "safetensors-0.5.3-cp38-abi3-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:1077f3e94182d72618357b04b5ced540ceb71c8a813d3319f1aba448e68a770d"},
+    {file = "safetensors-0.5.3-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:799021e78287bac619c7b3f3606730a22da4cda27759ddf55d37c8db7511c74b"},
+    {file = "safetensors-0.5.3-cp38-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:df26da01aaac504334644e1b7642fa000bfec820e7cef83aeac4e355e03195ff"},
+    {file = "safetensors-0.5.3-cp38-abi3-musllinux_1_2_i686.whl", hash = "sha256:32c3ef2d7af8b9f52ff685ed0bc43913cdcde135089ae322ee576de93eae5135"},
+    {file = "safetensors-0.5.3-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:37f1521be045e56fc2b54c606d4455573e717b2d887c579ee1dbba5f868ece04"},
+    {file = "safetensors-0.5.3-cp38-abi3-win32.whl", hash = "sha256:cfc0ec0846dcf6763b0ed3d1846ff36008c6e7290683b61616c4b040f6a54ace"},
+    {file = "safetensors-0.5.3-cp38-abi3-win_amd64.whl", hash = "sha256:836cbbc320b47e80acd40e44c8682db0e8ad7123209f69b093def21ec7cafd11"},
+    {file = "safetensors-0.5.3.tar.gz", hash = "sha256:b6b0d6ecacec39a4fdd99cc19f4576f5219ce858e6fd8dbe7609df0b8dc56965"},
+]
+
+[package.extras]
+all = ["safetensors[jax]", "safetensors[numpy]", "safetensors[paddlepaddle]", "safetensors[pinned-tf]", "safetensors[quality]", "safetensors[testing]", "safetensors[torch]"]
+dev = ["safetensors[all]"]
+jax = ["flax (>=0.6.3)", "jax (>=0.3.25)", "jaxlib (>=0.3.25)", "safetensors[numpy]"]
+mlx = ["mlx (>=0.0.9)"]
+numpy = ["numpy (>=1.21.6)"]
+paddlepaddle = ["paddlepaddle (>=2.4.1)", "safetensors[numpy]"]
+pinned-tf = ["safetensors[numpy]", "tensorflow (==2.18.0)"]
+quality = ["black (==22.3)", "click (==8.0.4)", "flake8 (>=3.8.3)", "isort (>=5.5.4)"]
+tensorflow = ["safetensors[numpy]", "tensorflow (>=2.11.0)"]
+testing = ["h5py (>=3.7.0)", "huggingface-hub (>=0.12.1)", "hypothesis (>=6.70.2)", "pytest (>=7.2.0)", "pytest-benchmark (>=4.0.0)", "safetensors[numpy]", "setuptools-rust (>=1.5.2)"]
+torch = ["safetensors[numpy]", "torch (>=1.10)"]
+
+[[package]]
 name = "scikit-learn"
 version = "1.7.1"
 description = "A set of python modules for machine learning and data mining"
@@ -2785,6 +2964,18 @@ doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-
 enabler = ["pytest-enabler (>=2.2)"]
 test = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21) ; python_version >= \"3.9\" and sys_platform != \"cygwin\"", "jaraco.envs (>=2.2)", "jaraco.path (>=3.7.2)", "jaraco.test (>=5.5)", "packaging (>=24.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.*)", "pytest-home (>=0.5)", "pytest-perf ; sys_platform != \"cygwin\"", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel (>=0.44.0)"]
 type = ["importlib_metadata (>=7.0.2) ; python_version < \"3.10\"", "jaraco.develop (>=7.21) ; sys_platform != \"cygwin\"", "mypy (==1.14.*)", "pytest-mypy"]
+
+[[package]]
+name = "shellingham"
+version = "1.5.4"
+description = "Tool to Detect Surrounding Shell"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
+    {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
+]
 
 [[package]]
 name = "simplejson"
@@ -3174,6 +3365,24 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
+name = "typer"
+version = "0.16.1"
+description = "Typer, build great CLIs. Easy to code. Based on Python type hints."
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+files = [
+    {file = "typer-0.16.1-py3-none-any.whl", hash = "sha256:90ee01cb02d9b8395ae21ee3368421faf21fa138cb2a541ed369c08cec5237c9"},
+    {file = "typer-0.16.1.tar.gz", hash = "sha256:d358c65a464a7a90f338e3bb7ff0c74ac081449e53884b12ba658cbd72990614"},
+]
+
+[package.dependencies]
+click = ">=8.0.0"
+rich = ">=10.11.0"
+shellingham = ">=1.3.0"
+typing-extensions = ">=3.7.4.3"
+
+[[package]]
 name = "typing-extensions"
 version = "4.14.1"
 description = "Backported and Experimental Type Hints for Python 3.9+"
@@ -3229,6 +3438,28 @@ brotli = ["brotli (>=1.0.9) ; platform_python_implementation == \"CPython\"", "b
 h2 = ["h2 (>=4,<5)"]
 socks = ["pysocks (>=1.5.6,!=1.5.7,<2.0)"]
 zstd = ["zstandard (>=0.18.0)"]
+
+[[package]]
+name = "utilsforecast"
+version = "0.2.12"
+description = "Forecasting utilities"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "utilsforecast-0.2.12-py3-none-any.whl", hash = "sha256:acfba80bbf44e18433c206194f3ddd89cc28ff03aa0ba744b8040795a40b7b3f"},
+    {file = "utilsforecast-0.2.12.tar.gz", hash = "sha256:73f9dfd836a721a95c349f784bd75e18a4cb7c1469800e325414e22901e9775b"},
+]
+
+[package.dependencies]
+numpy = "*"
+packaging = "*"
+pandas = ">=1.1.1"
+
+[package.extras]
+dev = ["black", "datasetsforecast (==0.0.8)", "nbdev (<2.3.26)", "numba (>=0.58.0)", "pandas[plot]", "plotly", "plotly-resampler", "polars[numpy]", "pyarrow", "scipy"]
+plotting = ["pandas[plot]", "plotly", "plotly-resampler"]
+polars = ["polars[numpy]"]
 
 [[package]]
 name = "uv"
@@ -3348,6 +3579,18 @@ files = [
 
 [package.extras]
 watchmedo = ["PyYAML (>=3.10)"]
+
+[[package]]
+name = "wcwidth"
+version = "0.2.13"
+description = "Measures the displayed width of unicode strings in a terminal"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859"},
+    {file = "wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5"},
+]
 
 [[package]]
 name = "werkzeug"
@@ -3476,4 +3719,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "15b65432f0abe8d134066538d141e9726fc977845d6aaa3d3b40b5ba35d8de0b"
+content-hash = "6d5d7e9ffae4593808311ec5a0fefc288cdab9e977c0c80615b254ae29c76fc3"

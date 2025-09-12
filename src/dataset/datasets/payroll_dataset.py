@@ -11,7 +11,7 @@ class PayrollDataset(TimeSeriesData):
     """
 
     home = Path(__file__).parents[2]
-    payroll_url = f"{home}/database/Lohnkonto2022-2025_english.csv"
+    payroll_url = f"{home}/dataset/austria_payroll/Lohnkonto2022-2025_english.csv"
 
     #################### Creator operation ####################
     def __init__(self):

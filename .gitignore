@@ -227,5 +227,5 @@ model_checkpoints/*
 !model_checkpoints/timegan/**  # Include all files inside
 
 src/database/*
-!src/database/synthetic_data/
-!src/database/synthetic_data/**  # Include all files inside
+!src/database/TimeGAN/
+!src/database/TimeGAN/**  # Include all files inside
