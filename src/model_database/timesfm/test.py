@@ -20,10 +20,10 @@ export PYTHONPATH=$(pwd)
 poetry run streamlit run src/model_database/timesfm/test.py
 """
 current_working_dir = os.getcwd()
-REPO = "google/timesfm-2.0-500m-pytorch"
+REPO = "google/timesfm-1.0-200m-pytorch"
 HORIZON = 12
 CONTEXT = 24
-NUM_LAYERS = {"google/timesfm-1.0-200m-pytorch": 20, "google/timesfm-2.0-500m-pytorch": 50}
+NUM_LAYERS = {"google/timesfm-1.0-200m-pytorch": 20, "google/timesfm-2.0-500m-pytorch": 50} #500 M must be on GPU 
 
 
 # ---------------------------
@@ -107,19 +107,23 @@ def run_forecast(data_key: str, model_type: Literal["finetuned", "pretrained"]):
     )
     test_dl = DataLoader(test_dataset, batch_size=32)
     forecasts, ground_truth = [], []
+    contexts = []
     with torch.no_grad():
         for i, (context, pad, freq, horizon) in enumerate(tqdm(test_dl, desc="Getting forecasts")):
             if i > 5:
                 break
+            B, T = context.shape
             predictions = model(context, pad.float(), freq)
             predictions_mean = predictions[..., 0]  # [B, N, horizon_len]
             last_patch_pred = predictions_mean[:, -1, :]  # [B, horizon_len]
+            cut_idx = pad.sum(dim=1)   # shape [B]
+            context = [context[b, int(cut_idx[b].item()):] for b in range(B)]
             horizon = horizon[:, :HORIZON]
             last_patch_pred = last_patch_pred[:, :HORIZON]
             forecasts = forecasts + list(last_patch_pred.unbind(0))
-            # full_predictions = full_predictions = list(full_pred.unbind(0))
+            contexts = contexts + context
             ground_truth = ground_truth + list(horizon.unbind(0))
-    return forecasts, ground_truth
+    return forecasts, ground_truth, contexts
 
 
 # ---------------------------
@@ -137,13 +141,13 @@ with st.spinner(f"Running forecast for `{data_key}`..."):
     # Load data and run forecasting
     data_map = load_data()
     data = data_map[data_key]
-    point_forecasts, ground_truth = run_forecast(data_key, model_type=model_type)
+    point_forecasts, ground_truth, contexts = run_forecast(data_key, model_type=model_type)
 
     st.write(f"### Showing {num_samples} samples from `{data_key}` data")
 
     # Display forecasts for each sample
-    for i in range(min(num_samples, len(data))):
-        series = data[i]
+    for i in range(min(num_samples, len(contexts))):
+        series = contexts[i]
         forecast = point_forecasts[i]
 
         # Convert tensors to numpy if needed

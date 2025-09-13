@@ -19,7 +19,7 @@ DATA_ROOT = "/mnt/c/Users/elzhang/Documents/payroll/src/database"
 FILE_PATH = "TimeGAN/payroll_36"
 CONTEXT_LENGTH = 24  # will be padded to multiple of 32
 HORIZON_LENGTH = 12  # will be padded to 128
-REPO = "google/timesfm-2.0-500m-pytorch"
+REPO = "google/timesfm-1.0-200m-pytorch"
 NUM_LAYERS = {"google/timesfm-1.0-200m-pytorch": 20, "google/timesfm-2.0-500m-pytorch": 50}
 FREQ = 1  # 1 for monthly, 0 for
 
