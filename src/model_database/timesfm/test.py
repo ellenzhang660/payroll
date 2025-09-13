@@ -23,7 +23,7 @@ current_working_dir = os.getcwd()
 REPO = "google/timesfm-1.0-200m-pytorch"
 HORIZON = 12
 CONTEXT = 24
-NUM_LAYERS = {"google/timesfm-1.0-200m-pytorch": 20, "google/timesfm-2.0-500m-pytorch": 50} #500 M must be on GPU 
+NUM_LAYERS = {"google/timesfm-1.0-200m-pytorch": 20, "google/timesfm-2.0-500m-pytorch": 50}  # 500 M must be on GPU
 
 
 # ---------------------------
@@ -116,8 +116,8 @@ def run_forecast(data_key: str, model_type: Literal["finetuned", "pretrained"]):
             predictions = model(context, pad.float(), freq)
             predictions_mean = predictions[..., 0]  # [B, N, horizon_len]
             last_patch_pred = predictions_mean[:, -1, :]  # [B, horizon_len]
-            cut_idx = pad.sum(dim=1)   # shape [B]
-            context = [context[b, int(cut_idx[b].item()):] for b in range(B)]
+            cut_idx = pad.sum(dim=1)  # shape [B]
+            context = [context[b, int(cut_idx[b].item()) :] for b in range(B)]
             horizon = horizon[:, :HORIZON]
             last_patch_pred = last_patch_pred[:, :HORIZON]
             forecasts = forecasts + list(last_patch_pred.unbind(0))
